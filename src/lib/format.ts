@@ -1,0 +1,65 @@
+import { differenceInCalendarDays, format, formatDistanceToNowStrict, parseISO } from "date-fns"
+import { zhCN } from "date-fns/locale"
+
+import { EXPIRY_WARNING_DAYS } from "@/lib/constants"
+
+export function formatDate(value: string | null | undefined) {
+  if (!value) return "—"
+  return format(parseISO(value), "yyyy-MM-dd")
+}
+
+export function formatDateTime(value: string | null | undefined) {
+  if (!value) return "—"
+  return format(parseISO(value), "yyyy-MM-dd HH:mm")
+}
+
+export function formatRelative(value: string | null | undefined) {
+  if (!value) return "从未"
+  return `${formatDistanceToNowStrict(parseISO(value), { locale: zhCN })}前`
+}
+
+export function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+export type Validity = "valid" | "expiring" | "expired" | "permanent"
+
+export function getValidity(expiryDate: string | null, today = new Date()): {
+  state: Validity
+  daysLeft: number | null
+} {
+  if (!expiryDate) return { state: "permanent", daysLeft: null }
+  const daysLeft = differenceInCalendarDays(parseISO(expiryDate), today)
+  if (daysLeft < 0) return { state: "expired", daysLeft }
+  if (daysLeft <= EXPIRY_WARNING_DAYS) return { state: "expiring", daysLeft }
+  return { state: "valid", daysLeft }
+}
+
+export function fullName(p: { surname: string; givenNames: string }) {
+  return `${p.surname} ${p.givenNames}`.trim()
+}
+
+export function initials(name: string) {
+  const trimmed = name.trim()
+  if (/^[\u4e00-\u9fa5]/.test(trimmed)) return trimmed.slice(-2)
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+}
+
+/** 生成机读区（MRZ）首行样式文本，仅用于界面展示。 */
+export function mrzLine(p: { surname: string; givenNames: string }, country: string) {
+  const clean = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z ]/g, "")
+      .trim()
+      .replace(/\s+/g, "<")
+  return `P<${country}${clean(p.surname)}<<${clean(p.givenNames)}`.padEnd(44, "<").slice(0, 44)
+}

@@ -1,0 +1,80 @@
+"use client"
+
+import { Fragment } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+import { Badge } from "@/components/ui/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { appConfig } from "@/lib/config"
+import { useApplicant } from "@/features/applicants/api"
+
+const LABELS: Record<string, string> = {
+  dashboard: "工作台",
+  applicants: "申请人档案",
+  new: "新建档案",
+  edit: "编辑",
+  admin: "系统管理",
+  users: "用户管理",
+  roles: "角色与权限",
+}
+
+function ApplicantCrumb({ id }: { id: string }) {
+  const { data } = useApplicant(id)
+  return <span className="doc-number">{data?.fileNo ?? "档案详情"}</span>
+}
+
+export function AppHeader() {
+  const pathname = usePathname()
+  const segments = pathname.split("/").filter(Boolean)
+
+  const crumbs = segments.map((segment, i) => {
+    const href = "/" + segments.slice(0, i + 1).join("/")
+    const isApplicantId = segments[i - 1] === "applicants" && !(segment in LABELS)
+    const label = isApplicantId ? <ApplicantCrumb id={segment} /> : (LABELS[segment] ?? segment)
+    // "系统管理" 仅是分组，没有对应页面
+    const linkable = segment !== "admin"
+    return { href, label, linkable }
+  })
+
+  return (
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
+      <Breadcrumb className="min-w-0 flex-1">
+        <BreadcrumbList>
+          {crumbs.map((crumb, i) => (
+            <Fragment key={crumb.href}>
+              {i > 0 && <BreadcrumbSeparator className="max-sm:hidden" />}
+              <BreadcrumbItem className={i < crumbs.length - 1 ? "max-sm:hidden" : undefined}>
+                {i === crumbs.length - 1 ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : crumb.linkable ? (
+                  <BreadcrumbLink asChild>
+                    <Link href={crumb.href}>{crumb.label}</Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <span>{crumb.label}</span>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
+      {appConfig.useMock && (
+        <Badge variant="warning" title="接口请求由本地 Mock 处理，数据保存在浏览器中">
+          Mock 数据
+        </Badge>
+      )}
+    </header>
+  )
+}
