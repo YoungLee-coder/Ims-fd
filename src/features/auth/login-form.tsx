@@ -19,12 +19,7 @@ import { appConfig } from "@/lib/config"
 import { authApi, authKeys } from "@/features/auth/api"
 import { loginSchema, type LoginValues } from "@/features/auth/schemas"
 
-const DEMO_ACCOUNTS = [
-  { username: "admin", password: "Admin@2026", role: "系统管理员" },
-  { username: "zhou.anlan", password: "Officer@2026", role: "签证审核官" },
-  { username: "song.zhiwei", password: "Officer@2026", role: "督察审计员（只读）" },
-  { username: "han.yizhou", password: "Officer@2026", role: "待审核账号" },
-]
+const DEMO_ACCOUNT = { username: "admin", password: "Admin@2026", role: "系统管理员" }
 
 function safeNext(next: string | null) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard"
@@ -87,25 +82,23 @@ export function LoginForm() {
         <Separator />
         <div className="flex items-baseline justify-between">
           <h3 id="demo-accounts" className="text-xs font-medium text-muted-foreground">
-            {appConfig.useMock ? "演示账号 · 本地 Mock 数据" : "演示账号"}
+            演示账号
           </h3>
         </div>
         <ul className="flex flex-col">
-          {(appConfig.useMock ? DEMO_ACCOUNTS : DEMO_ACCOUNTS.slice(0, 1)).map((account) => (
-              <li key={account.username}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    form.reset(account)
-                    login.reset()
-                  }}
-                  className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:bg-accent"
-                >
-                  <span className="doc-number">{account.username}</span>
-                  <span className="text-muted-foreground">{account.role}</span>
-                </button>
-              </li>
-            ))}
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                form.reset(DEMO_ACCOUNT)
+                login.reset()
+              }}
+              className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:bg-accent"
+            >
+              <span className="doc-number">{DEMO_ACCOUNT.username}</span>
+              <span className="text-muted-foreground">{DEMO_ACCOUNT.role}</span>
+            </button>
+          </li>
         </ul>
       </section>
     </div>

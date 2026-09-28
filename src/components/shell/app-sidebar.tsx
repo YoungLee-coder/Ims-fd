@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useQueryClient } from "@tanstack/react-query"
 import {
   ChevronsUpDownIcon,
   ClipboardListIcon,
@@ -10,13 +9,11 @@ import {
   FolderOpenIcon,
   LayoutDashboardIcon,
   LogOutIcon,
-  RotateCcwIcon,
   ScrollTextIcon,
   ShieldCheckIcon,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react"
-import { toast } from "sonner"
 
 import { AgencyLockup } from "@/components/brand"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,7 +40,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { appConfig } from "@/lib/config"
 import { initials } from "@/lib/format"
 import { useAuth } from "@/features/auth/auth-provider"
 import { useDashboardSummary } from "@/features/dashboard/api"
@@ -159,15 +155,7 @@ export function AppSidebar() {
 
 function UserMenu() {
   const { user, logout } = useAuth()
-  const queryClient = useQueryClient()
   const roleNames = user.roles.map((r) => r.name).join("、") || "未分配角色"
-
-  async function resetDemoData() {
-    const { resetMockDb } = await import("@/lib/api/mock/db")
-    resetMockDb()
-    await queryClient.invalidateQueries()
-    toast.success("演示数据已恢复为初始状态")
-  }
 
   return (
     <SidebarMenu>
@@ -196,12 +184,6 @@ function UserMenu() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              {appConfig.useMock && (
-                <DropdownMenuItem onSelect={resetDemoData}>
-                  <RotateCcwIcon />
-                  重置演示数据
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onSelect={logout}>
                 <LogOutIcon />
                 退出登录

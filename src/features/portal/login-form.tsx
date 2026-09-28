@@ -11,19 +11,11 @@ import { PasswordField, TextField } from "@/components/form/fields"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { errorMessage } from "@/lib/api/client"
 import { setPortalSession } from "@/lib/api/session"
-import { appConfig } from "@/lib/config"
 import { portalAuthApi, portalAuthKeys } from "@/features/portal/api"
 import { portalLoginSchema, type PortalLoginValues } from "@/features/portal/schemas"
-
-const DEMO_ACCOUNTS = [
-  { email: "priya.mehta@fastmail.in", password: "Applicant@2026", note: "审核中 · 待补件" },
-  { email: "lars.eriksson@mariteq.se", password: "Applicant@2026", note: "已通过 · 已驳回" },
-  { email: "haruto.tanaka@uni-mail.jp", password: "Applicant@2026", note: "1 份草稿" },
-]
 
 /** 只允许跳回门户内部路径，避免 next 参数把用户带到其他系统。 */
 function safeNext(next: string | null) {
@@ -90,32 +82,6 @@ export function PortalLoginForm() {
           注册申请人账号
         </Link>
       </p>
-
-      {appConfig.useMock && (
-        <section aria-labelledby="portal-demo-accounts" className="flex flex-col gap-3">
-          <Separator />
-          <h2 id="portal-demo-accounts" className="text-xs font-medium text-muted-foreground">
-            演示账号 · 本地 Mock 数据
-          </h2>
-          <ul className="flex flex-col">
-            {DEMO_ACCOUNTS.map((account) => (
-              <li key={account.email}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    form.reset({ email: account.email, password: account.password })
-                    login.reset()
-                  }}
-                  className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:bg-accent"
-                >
-                  <span className="truncate">{account.email}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{account.note}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   )
 }

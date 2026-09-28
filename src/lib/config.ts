@@ -5,8 +5,8 @@ export const appConfig = {
   systemCode: "IMS",
   /** ICAO 9303 三位国家代码。UTO 是 ICAO 样例证件使用的虚构国家代码，上线前替换为本国代码。 */
   countryCode: "UTO",
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/v1",
-  useMock: process.env.NEXT_PUBLIC_API_MOCK !== "false",
+  apiBaseUrl:
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://ims-api.bcyheung.workers.dev/api/v1",
 } as const
 
 /** Proxy 仅用它做乐观跳转判断；真实鉴权由后端基于 token 完成。 */

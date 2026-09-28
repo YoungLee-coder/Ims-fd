@@ -85,21 +85,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const realm = options.realm ?? "staff"
   const method = options.method ?? "GET"
   const token = REALM_CONFIG[realm].getToken()
-
-  if (appConfig.useMock) {
-    try {
-      if (realm === "portal") {
-        const { handlePortalMockRequest } = await import("@/lib/api/mock/portal-handlers")
-        return await handlePortalMockRequest<T>({ method, path, query: options.query, body: options.body, token })
-      }
-      const { handleMockRequest } = await import("@/lib/api/mock/handlers")
-      return await handleMockRequest<T>({ method, path, query: options.query, body: options.body, token })
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) redirectToLogin(realm, path)
-      throw error
-    }
-  }
-
   const isFormData = options.body instanceof FormData
   const headers: Record<string, string> = { Accept: "application/json" }
   if (token) headers.Authorization = `Bearer ${token}`

@@ -4,7 +4,6 @@ import { Fragment } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,7 +14,6 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { appConfig } from "@/lib/config"
 import { useApplicant } from "@/features/applicants/api"
 import { useStaffApplication } from "@/features/applications/api"
 import { NotificationBell } from "@/features/notifications/notification-bell"
@@ -87,11 +85,6 @@ export function AppHeader() {
         </BreadcrumbList>
       </Breadcrumb>
       <NotificationBell realm="staff" />
-      {appConfig.useMock && (
-        <Badge variant="warning" title="接口请求由本地 Mock 处理，数据保存在浏览器中">
-          Mock 数据
-        </Badge>
-      )}
     </header>
   )
 }

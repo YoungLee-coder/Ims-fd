@@ -6,20 +6,11 @@
 
 ```bash
 pnpm install
-cp .env.example .env.local   # 默认对接线上 API；离线演示把 NEXT_PUBLIC_API_MOCK 改为 true
+cp .env.example .env.local   # 可选；不设置时也会请求线上 API
 pnpm dev
 ```
 
-打开 http://localhost:3000 。线上环境目前只预置了管理员 `admin` / `Admin@2026`。Mock 模式下登录页还会列出其余演示账号，点击即可填入：
-
-| 用户名 | 密码 | 角色 |
-| --- | --- | --- |
-| admin | Admin@2026 | 系统管理员 |
-| zhou.anlan | Officer@2026 | 签证审核官 |
-| song.zhiwei | Officer@2026 | 督察审计员（只读） |
-| han.yizhou | Officer@2026 | 待审核账号（无法登录） |
-
-Mock 数据保存在浏览器 localStorage，可在侧边栏用户菜单中“重置演示数据”。
+打开 http://localhost:3000 。线上目前预置了管理员 `admin` / `Admin@2026`，登录页可直接点选填入。
 
 ## 申请人门户
 
@@ -32,14 +23,6 @@ Mock 数据保存在浏览器 localStorage，可在侧边栏用户菜单中“�
 | `/portal/applications` | 我的申请：草稿与办理进度 |
 | `/portal/applications/new` | 新建申请（五步向导） |
 | `/portal/applications/:id` | 申请详情与办理进度时间线 |
-
-演示账号（Mock 模式下登录页可直接点选，密码均为 `Applicant@2026`）：
-
-| 邮箱 | 演示数据 |
-| --- | --- |
-| priya.mehta@fastmail.in | 审核中、待补件各一份 |
-| lars.eriksson@mariteq.se | 已通过（含档案编号）、已驳回各一份 |
-| haruto.tanaka@uni-mail.jp | 一份未提交的草稿 |
 
 ### 申请人办事流程
 
@@ -70,7 +53,7 @@ Mock 数据保存在浏览器 localStorage，可在侧边栏用户菜单中“�
 
 所有接口集中在 `src/lib/api/endpoints.ts`，请求与响应类型在 `src/types/index.ts`。
 
-1. 默认已对接 `https://ims-api.bcyheung.workers.dev/api/v1`（见 `.env.example`）。离线演示时把 `NEXT_PUBLIC_API_MOCK` 设为 `true`。
+1. 请求默认发往 `https://ims-api.bcyheung.workers.dev/api/v1`。需要换地址时设置 `NEXT_PUBLIC_API_BASE_URL` 后重新构建。Vercel 上这个变量要配在项目环境变量里，改完需要重新部署。
 2. 后端约定：
    - 鉴权：`POST /auth/login` 返回 `accessToken`，之后请求携带 `Authorization: Bearer <token>`；401 时前端自动跳转登录页。
    - 错误体：`{ code, message, fieldErrors? }`，`fieldErrors` 会回填到对应表单字段。
@@ -117,7 +100,7 @@ src/
   app/portal/(app)/    申请人门户（我的申请、申请向导、申请详情）
   features/<模块>/     各模块的接口、hooks、表单与视图
   components/          布局外壳、通用表单字段、状态徽标、shadcn/ui
-  lib/api/             请求客户端、接口清单、Mock 实现
+  lib/api/             请求客户端与接口清单
 ```
 
 请求客户端按登录域分成 `api`（内部）与 `portalApi`（门户）两个实例，分别读取各自的 token；
