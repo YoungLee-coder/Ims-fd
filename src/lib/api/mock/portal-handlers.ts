@@ -1,6 +1,7 @@
 import { ApiError, type HttpMethod, type Query } from "@/lib/api/client"
 import { getDb, nextId, persist, type MockApplicantAccount } from "@/lib/api/mock/db"
 import type {
+  AppNotification,
   ApplicantAccount,
   ApplicantLoginPayload,
   ApplicantLoginResult,
@@ -368,6 +369,26 @@ const routes: PortalRoute[] = [
       assertDraft(application)
       application.attachments = application.attachments.filter((a) => a.id !== params.attachmentId)
       application.updatedAt = nowIso()
+      persist()
+    },
+  },
+  {
+    method: "GET",
+    pattern: "/portal/notifications",
+    handler: ({ account }): AppNotification[] =>
+      getDb()
+        .notifications.filter((item) => item.recipientType === "portal" && item.recipientId === account.id)
+        .slice(0, 50)
+        .map(({ recipientType: _recipientType, recipientId: _recipientId, ...item }) => item),
+  },
+  {
+    method: "POST",
+    pattern: "/portal/notifications/:id/read",
+    handler: ({ params, account }) => {
+      const item = getDb().notifications.find(
+        (entry) => entry.id === params.id && entry.recipientType === "portal" && entry.recipientId === account.id
+      )
+      if (item && !item.readAt) item.readAt = nowIso()
       persist()
     },
   },

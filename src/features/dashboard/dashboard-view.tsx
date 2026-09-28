@@ -15,6 +15,16 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/features/auth/auth-provider"
 import { Can } from "@/features/auth/require-permission"
 import { useDashboardSummary } from "@/features/dashboard/api"
+import { useReports } from "@/features/reports/api"
+
+function ReportFigure({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="flex flex-col gap-2 border-b border-r p-5 -mb-px -mr-px">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      {value === undefined ? <Skeleton className="h-9 w-16" /> : <span className="text-3xl leading-9 font-semibold tabular-nums">{value}</span>}
+    </div>
+  )
+}
 
 function greeting() {
   const h = new Date().getHours()
@@ -27,8 +37,15 @@ function greeting() {
 export function DashboardView() {
   const { user, can } = useAuth()
   const { data, isPending } = useDashboardSummary()
+  const reports = useReports(can("applicant.read"))
 
   const stats = [
+    {
+      label: "待受理申请",
+      value: reports.isPending ? undefined : (reports.data?.byStatus.submitted ?? 0),
+      href: "/applications?status=submitted",
+      show: can("applicant.read"),
+    },
     { label: "在档申请人", value: data?.applicantTotal, href: "/applicants", show: can("applicant.read") },
     {
       label: "审查中档案",
@@ -66,12 +83,12 @@ export function DashboardView() {
 
       {stats.length > 0 && (
         <section aria-label="业务概况">
-          <div className="grid grid-cols-2 overflow-hidden rounded-lg border bg-card sm:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 overflow-hidden rounded-lg border bg-card sm:grid-cols-3 xl:grid-cols-6">
             {stats.map((stat) => {
               const content = (
                 <>
                   <span className="text-sm text-muted-foreground">{stat.label}</span>
-                  {isPending ? (
+                  {isPending || stat.value === undefined ? (
                     <Skeleton className="h-9 w-12" />
                   ) : (
                     <span
@@ -103,6 +120,53 @@ export function DashboardView() {
           </div>
         </section>
       )}
+
+      <Can anyOf="applicant.read">
+        <section aria-labelledby="reports-title" className="flex flex-col gap-4">
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h2 id="reports-title" className="text-lg font-semibold">
+                申请办理
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                通过率按已办结申请计算，平均处理天数从提交到通过或驳回。
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/applications">
+                前往受理
+                <ArrowRightIcon data-icon="inline-end" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 overflow-hidden rounded-lg border bg-card sm:grid-cols-3">
+            <ReportFigure
+              label="申请总量"
+              value={reports.isPending ? undefined : String(reports.data?.applicationTotal ?? 0)}
+            />
+            <ReportFigure
+              label="通过率"
+              value={
+                reports.isPending
+                  ? undefined
+                  : reports.data?.approvalRate == null
+                    ? "—"
+                    : `${Math.round(reports.data.approvalRate * 1000) / 10}%`
+              }
+            />
+            <ReportFigure
+              label="平均处理天数"
+              value={
+                reports.isPending
+                  ? undefined
+                  : reports.data?.averageProcessingDays == null
+                    ? "—"
+                    : String(reports.data.averageProcessingDays)
+              }
+            />
+          </div>
+        </section>
+      </Can>
 
       <Can anyOf="document.read">
         <section aria-labelledby="expiring-title" className="flex flex-col gap-4">

@@ -33,7 +33,18 @@ export function AttachmentList({
       {attachments.map((attachment) => (
         <li key={attachment.id} className="flex items-center gap-3 px-3 py-2.5 text-sm">
           <FileIcon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="min-w-0 flex-1 truncate">{attachment.fileName}</span>
+          {attachment.url && attachment.url !== "#" ? (
+            <a
+              href={attachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="relative z-[1] min-w-0 flex-1 truncate underline-offset-4 hover:underline"
+            >
+              {attachment.fileName}
+            </a>
+          ) : (
+            <span className="min-w-0 flex-1 truncate">{attachment.fileName}</span>
+          )}
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {formatFileSize(attachment.size)}
           </span>

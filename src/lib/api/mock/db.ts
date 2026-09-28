@@ -8,6 +8,7 @@ import type {
   ApplicationStatus,
   ApplicationTimelineEntry,
   Attachment,
+  AuditActorType,
   DocumentType,
   ID,
   IdentityDocument,
@@ -37,7 +38,31 @@ export interface MockDb {
   applicantAccounts: MockApplicantAccount[]
   /** 申请人提交的申请单 */
   applications: Application[]
+  notifications: MockNotification[]
+  auditLogs: MockAuditLog[]
   seq: number
+}
+
+export interface MockNotification {
+  id: ID
+  recipientType: "staff" | "portal"
+  recipientId: ID
+  title: string
+  body: string
+  readAt: string | null
+  createdAt: string
+}
+
+export interface MockAuditLog {
+  id: ID
+  actorType: AuditActorType
+  actorId: ID | null
+  actorName: string
+  action: string
+  resourceType: string
+  resourceId: ID | null
+  detail: string
+  createdAt: string
 }
 
 /** 结构变更时提升版本号，旧数据会自动作废并重新播种。 */
@@ -48,6 +73,8 @@ export function getDb(): MockDb {
   if (cache) return cache
   const raw = window.localStorage.getItem(STORAGE_KEY)
   cache = raw ? (JSON.parse(raw) as MockDb) : seed()
+  cache.notifications ??= []
+  cache.auditLogs ??= []
   persist()
   return cache
 }
@@ -59,6 +86,23 @@ export function persist() {
 export function resetMockDb() {
   window.localStorage.removeItem(STORAGE_KEY)
   cache = null
+}
+
+export function recordNotification(entry: Omit<MockNotification, "id" | "readAt" | "createdAt">) {
+  const db = getDb()
+  db.notifications.unshift({
+    ...entry,
+    id: nextId("n"),
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  })
+  persist()
+}
+
+export function recordAudit(entry: Omit<MockAuditLog, "id" | "createdAt">) {
+  const db = getDb()
+  db.auditLogs.unshift({ ...entry, id: nextId("log"), createdAt: new Date().toISOString() })
+  persist()
 }
 
 export function nextId(prefix: string) {
@@ -627,5 +671,5 @@ function seed(): MockDb {
     }),
   ]
 
-  return { users, roles, applicants, documents, applicantAccounts, applications, seq: 100 }
+  return { users, roles, applicants, documents, applicantAccounts, applications, notifications: [], auditLogs: [], seq: 100 }
 }

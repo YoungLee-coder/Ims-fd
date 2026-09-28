@@ -6,11 +6,11 @@
 
 ```bash
 pnpm install
-cp .env.example .env.local   # 可选，默认即使用 Mock
+cp .env.example .env.local   # 默认对接线上 API；离线演示把 NEXT_PUBLIC_API_MOCK 改为 true
 pnpm dev
 ```
 
-打开 http://localhost:3000 。Mock 模式下登录页列出演示账号，点击即可填入：
+打开 http://localhost:3000 。线上环境目前只预置了管理员 `admin` / `Admin@2026`。Mock 模式下登录页还会列出其余演示账号，点击即可填入：
 
 | 用户名 | 密码 | 角色 |
 | --- | --- | --- |
@@ -63,14 +63,14 @@ Mock 数据保存在浏览器 localStorage，可在侧边栏用户菜单中“�
 - 工作台：业务概况与证件到期提醒
 - 申请人门户：注册 / 登录、五步申请向导与材料上传、我的申请、申请详情与进度时间线、撤回与删除草稿
 
-> 受理端（工作人员审批申请单、通过后建立申请人档案并回填档案编号）尚未实现。
-> 当前提交后仅生成状态为「待受理」的申请单，等待后续接入。
+- 申请受理：工作人员查看申请、开始审核、要求补件、通过建档或驳回；通过且尚未建档时由后端建立档案并回填档案编号
+- 报表、通知与审计日志：工作台办理概况、页头通知、系统管理中的审计日志
 
 ## 对接后端
 
 所有接口集中在 `src/lib/api/endpoints.ts`，请求与响应类型在 `src/types/index.ts`。
 
-1. 设置 `NEXT_PUBLIC_API_MOCK=false` 与 `NEXT_PUBLIC_API_BASE_URL`。
+1. 默认已对接 `https://ims-api.bcyheung.workers.dev/api/v1`（见 `.env.example`）。离线演示时把 `NEXT_PUBLIC_API_MOCK` 设为 `true`。
 2. 后端约定：
    - 鉴权：`POST /auth/login` 返回 `accessToken`，之后请求携带 `Authorization: Bearer <token>`；401 时前端自动跳转登录页。
    - 错误体：`{ code, message, fieldErrors? }`，`fieldErrors` 会回填到对应表单字段。
@@ -92,6 +92,18 @@ Mock 数据保存在浏览器 localStorage，可在侧边栏用户菜单中“�
    | `POST /portal/applications/:id/attachments` | `multipart/form-data`，字段名 `files` |
 
    后台必须自行校验 `accountId` 归属：越权访问他人申请时应返回 **404**（而非 403），前端据此按“不存在”处理。
+
+5. 后端相对前端初版新增、现已接上的接口：
+
+   | 接口 | 说明 |
+   | --- | --- |
+   | `GET /applications` | 工作人员申请队列，分页，`status`、`keyword` |
+   | `GET /applications/:id` | 申请详情 |
+   | `POST /applications/:id/decision` | `{ action, note? }`，`action` 为 `start_review` / `request_supplement` / `approve` / `reject` |
+   | `GET /reports` | 申请量、通过率、平均处理天数 |
+   | `GET /notifications`、`POST /notifications/:id/read` | 工作人员通知 |
+   | `GET /portal/notifications`、`POST /portal/notifications/:id/read` | 门户通知 |
+   | `GET /audit-logs` | 审计日志，分页 |
 
 `src/proxy.ts` 仅根据 `ims_session`（内部）与 `ims_portal_session`（门户）两个 Cookie 做乐观跳转，真正的鉴权必须由后端完成。生产环境建议由后端下发 httpOnly Cookie 取代 localStorage 中的 token。
 

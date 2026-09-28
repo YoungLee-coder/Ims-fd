@@ -235,6 +235,8 @@ export interface DashboardSummary {
   expiringSoon: number
   pendingAccounts: number
   expiringDocuments: ExpiringDocument[]
+  /** 统计截止日期（yyyy-MM-dd） */
+  asOf?: ISODate
 }
 
 /* ---------- 申请人门户 ---------- */
@@ -363,4 +365,52 @@ export type ApplicationDraftPayload = Omit<
 
 export interface ApplicationQuery {
   status?: ApplicationStatus
+}
+
+/** 工作人员受理队列。与门户列表不同，这里分页返回全部申请。 */
+export interface StaffApplicationQuery extends ListQuery {
+  status?: ApplicationStatus
+}
+
+export type ApplicationDecisionAction = "start_review" | "request_supplement" | "approve" | "reject"
+
+export interface ApplicationDecisionPayload {
+  action: ApplicationDecisionAction
+  note?: string
+}
+
+export interface ReportSummary {
+  applicationTotal: number
+  /** 已通过 /（已通过 + 已驳回）；尚无终态申请时为 null */
+  approvalRate: number | null
+  /** 从提交到通过或驳回的平均天数；尚无终态申请时为 null */
+  averageProcessingDays: number | null
+  byStatus: Partial<Record<ApplicationStatus, number>>
+  byType: Partial<Record<ApplicationType, number>>
+}
+
+export interface AppNotification {
+  id: ID
+  title: string
+  body: string
+  readAt: ISODateTime | null
+  createdAt: ISODateTime
+}
+
+export type AuditActorType = "staff" | "portal" | "system"
+
+export interface AuditLog {
+  id: ID
+  actorType: AuditActorType
+  actorId: ID | null
+  actorName: string
+  action: string
+  resourceType: string
+  resourceId: ID | null
+  detail: string
+  createdAt: ISODateTime
+}
+
+export interface AuditLogQuery extends ListQuery {
+  keyword?: string
 }

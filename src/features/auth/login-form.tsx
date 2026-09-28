@@ -83,16 +83,15 @@ export function LoginForm() {
         </Link>
       </p>
 
-      {appConfig.useMock && (
-        <section aria-labelledby="demo-accounts" className="flex flex-col gap-3">
-          <Separator />
-          <div className="flex items-baseline justify-between">
-            <h3 id="demo-accounts" className="text-xs font-medium text-muted-foreground">
-              演示账号 · 本地 Mock 数据
-            </h3>
-          </div>
-          <ul className="flex flex-col">
-            {DEMO_ACCOUNTS.map((account) => (
+      <section aria-labelledby="demo-accounts" className="flex flex-col gap-3">
+        <Separator />
+        <div className="flex items-baseline justify-between">
+          <h3 id="demo-accounts" className="text-xs font-medium text-muted-foreground">
+            {appConfig.useMock ? "演示账号 · 本地 Mock 数据" : "演示账号"}
+          </h3>
+        </div>
+        <ul className="flex flex-col">
+          {(appConfig.useMock ? DEMO_ACCOUNTS : DEMO_ACCOUNTS.slice(0, 1)).map((account) => (
               <li key={account.username}>
                 <button
                   type="button"
@@ -107,9 +106,8 @@ export function LoginForm() {
                 </button>
               </li>
             ))}
-          </ul>
-        </section>
-      )}
+        </ul>
+      </section>
     </div>
   )
 }

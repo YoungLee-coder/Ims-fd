@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import {
   ChevronsUpDownIcon,
+  ClipboardListIcon,
   FilePlusIcon,
   FolderOpenIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   RotateCcwIcon,
+  ScrollTextIcon,
   ShieldCheckIcon,
   UsersIcon,
   type LucideIcon,
@@ -45,6 +47,7 @@ import { appConfig } from "@/lib/config"
 import { initials } from "@/lib/format"
 import { useAuth } from "@/features/auth/auth-provider"
 import { useDashboardSummary } from "@/features/dashboard/api"
+import { useReports } from "@/features/reports/api"
 import type { PermissionCode } from "@/types"
 
 interface NavItem {
@@ -53,7 +56,7 @@ interface NavItem {
   icon: LucideIcon
   anyOf?: PermissionCode[]
   exact?: boolean
-  badge?: "pendingAccounts"
+  badge?: "pendingAccounts" | "submittedApplications"
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
@@ -64,6 +67,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
   {
     label: "档案管理",
     items: [
+      { title: "申请受理", href: "/applications", icon: ClipboardListIcon, anyOf: ["applicant.read"], badge: "submittedApplications" },
       { title: "申请人档案", href: "/applicants", icon: FolderOpenIcon, anyOf: ["applicant.read"] },
       { title: "新建档案", href: "/applicants/new", icon: FilePlusIcon, anyOf: ["applicant.create"], exact: true },
     ],
@@ -79,6 +83,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
         badge: "pendingAccounts",
       },
       { title: "角色与权限", href: "/admin/roles", icon: ShieldCheckIcon, anyOf: ["role.read", "role.manage"] },
+      { title: "审计日志", href: "/admin/audit", icon: ScrollTextIcon, anyOf: ["user.read", "role.read"] },
     ],
   },
 ]
@@ -93,6 +98,7 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { can } = useAuth()
   const summary = useDashboardSummary()
+  const reports = useReports(can("applicant.read"))
 
   return (
     <Sidebar collapsible="icon">
@@ -112,7 +118,12 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {items.map((item) => {
-                    const count = item.badge ? summary.data?.[item.badge] : undefined
+                    const count =
+                      item.badge === "pendingAccounts"
+                        ? summary.data?.pendingAccounts
+                        : item.badge === "submittedApplications"
+                          ? reports.data?.byStatus.submitted
+                          : undefined
                     return (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton asChild isActive={isActive(pathname, item)} tooltip={item.title}>
@@ -121,7 +132,13 @@ export function AppSidebar() {
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
-                        {!!count && <SidebarMenuBadge aria-label={`${count} 个待审核账号`}>{count}</SidebarMenuBadge>}
+                        {!!count && (
+                          <SidebarMenuBadge
+                            aria-label={item.badge === "submittedApplications" ? `${count} 份待受理申请` : `${count} 个待审核账号`}
+                          >
+                            {count}
+                          </SidebarMenuBadge>
+                        )}
                       </SidebarMenuItem>
                     )
                   })}

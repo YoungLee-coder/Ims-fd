@@ -17,20 +17,29 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { appConfig } from "@/lib/config"
 import { useApplicant } from "@/features/applicants/api"
+import { useStaffApplication } from "@/features/applications/api"
+import { NotificationBell } from "@/features/notifications/notification-bell"
 
 const LABELS: Record<string, string> = {
   dashboard: "工作台",
+  applications: "申请受理",
   applicants: "申请人档案",
   new: "新建档案",
   edit: "编辑",
   admin: "系统管理",
   users: "用户管理",
   roles: "角色与权限",
+  audit: "审计日志",
 }
 
 function ApplicantCrumb({ id }: { id: string }) {
   const { data } = useApplicant(id)
   return <span className="doc-number">{data?.fileNo ?? "档案详情"}</span>
+}
+
+function ApplicationCrumb({ id }: { id: string }) {
+  const { data } = useStaffApplication(id)
+  return <span className="doc-number">{data?.applicationNo ?? "申请详情"}</span>
 }
 
 export function AppHeader() {
@@ -40,7 +49,14 @@ export function AppHeader() {
   const crumbs = segments.map((segment, i) => {
     const href = "/" + segments.slice(0, i + 1).join("/")
     const isApplicantId = segments[i - 1] === "applicants" && !(segment in LABELS)
-    const label = isApplicantId ? <ApplicantCrumb id={segment} /> : (LABELS[segment] ?? segment)
+    const isApplicationId = segments[i - 1] === "applications" && !(segment in LABELS)
+    const label = isApplicantId ? (
+      <ApplicantCrumb id={segment} />
+    ) : isApplicationId ? (
+      <ApplicationCrumb id={segment} />
+    ) : (
+      (LABELS[segment] ?? segment)
+    )
     // "系统管理" 仅是分组，没有对应页面
     const linkable = segment !== "admin"
     return { href, label, linkable }
@@ -70,6 +86,7 @@ export function AppHeader() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+      <NotificationBell realm="staff" />
       {appConfig.useMock && (
         <Badge variant="warning" title="接口请求由本地 Mock 处理，数据保存在浏览器中">
           Mock 数据

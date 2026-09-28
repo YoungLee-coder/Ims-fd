@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { appConfig } from "@/lib/config"
+import { NotificationBell } from "@/features/notifications/notification-bell"
 import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { ApplicantAccount } from "@/types"
@@ -76,6 +77,7 @@ export function PortalHeader({
         <div className="ml-auto flex items-center gap-2">
           {account ? (
             <>
+              <NotificationBell realm="portal" />
               <Button asChild size="sm" className="hidden sm:inline-flex">
                 <Link href="/portal/applications/new">
                   <FilePlusIcon data-icon="inline-start" />

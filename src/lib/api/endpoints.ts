@@ -55,6 +55,25 @@ export const endpoints = {
     /** GET -> DashboardSummary */
     summary: "/dashboard/summary",
   },
+  /** 工作人员受理申请，与门户 /portal/applications 不是同一组接口。 */
+  applications: {
+    /** GET StaffApplicationQuery -> Paginated<Application> */
+    list: "/applications",
+    /** GET -> Application */
+    detail: (id: ID) => `/applications/${id}`,
+    /** POST ApplicationDecisionPayload -> Application */
+    decision: (id: ID) => `/applications/${id}/decision`,
+  },
+  /** GET -> ReportSummary */
+  reports: "/reports",
+  notifications: {
+    /** GET -> AppNotification[]（最近 50 则） */
+    list: "/notifications",
+    /** POST -> 204 */
+    read: (id: ID) => `/notifications/${id}/read`,
+  },
+  /** GET AuditLogQuery -> Paginated<AuditLog> */
+  auditLogs: "/audit-logs",
   /**
    * 申请人门户。与内部接口使用各自独立的登录域，
    * 申请人只能读写属于本人账号的申请。
@@ -85,6 +104,12 @@ export const endpoints = {
       attachments: (id: ID) => `/portal/applications/${id}/attachments`,
       /** DELETE -> 204 */
       attachment: (id: ID, attachmentId: ID) => `/portal/applications/${id}/attachments/${attachmentId}`,
+    },
+    notifications: {
+      /** GET -> AppNotification[]（最近 50 则） */
+      list: "/portal/notifications",
+      /** POST -> 204 */
+      read: (id: ID) => `/portal/notifications/${id}/read`,
     },
   },
 } as const

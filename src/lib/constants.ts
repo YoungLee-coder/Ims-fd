@@ -1,5 +1,6 @@
 import type {
   ApplicantStatus,
+  ApplicationDecisionAction,
   ApplicationStatus,
   ApplicationType,
   DocumentType,
@@ -129,6 +130,13 @@ export const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
   "under_review",
   "supplement_required",
 ]
+
+export const DECISION_ACTION_LABELS: Record<ApplicationDecisionAction, string> = {
+  start_review: "开始审核",
+  request_supplement: "要求补件",
+  approve: "通过并建档",
+  reject: "驳回",
+}
 
 /** 已进入受理流程、申请人不可再编辑的状态 */
 export const LOCKED_STATUSES: ApplicationStatus[] = [

@@ -1,11 +1,16 @@
 import { ApiError, type HttpMethod, type Query } from "@/lib/api/client"
-import { getDb, nextId, persist, type MockApplicant, type MockUser } from "@/lib/api/mock/db"
+import { getDb, nextId, persist, recordAudit, recordNotification, type MockApplicant, type MockUser } from "@/lib/api/mock/db"
 import { getValidity } from "@/lib/format"
 import { PERMISSIONS } from "@/lib/permissions"
 import type {
+  AppNotification,
   Applicant,
   ApplicantPayload,
+  Application,
+  ApplicationDecisionAction,
+  ApplicationStatus,
   Attachment,
+  AuditLog,
   CreateUserPayload,
   CurrentUser,
   DashboardSummary,
@@ -16,6 +21,7 @@ import type {
   Paginated,
   PermissionCode,
   RegisterPayload,
+  ReportSummary,
   Role,
   RolePayload,
   UpdateUserPayload,
@@ -507,6 +513,215 @@ const routes: Route[] = [
       const doc = findDocument(params.id)
       doc.attachments = doc.attachments.filter((a) => a.id !== params.attachmentId)
       persist()
+    },
+  },
+
+  /* 申请受理、报表、通知、审计 */
+  {
+    method: "GET",
+    pattern: "/applications",
+    auth: ["applicant.read"],
+    handler: ({ query }): Paginated<Application> => {
+      const status = query.status ? String(query.status) : ""
+      const keyword = String(query.keyword ?? "").trim().toLowerCase()
+      const items = getDb()
+        .applications.filter((application) => !status || application.status === status)
+        .filter((application) => {
+          if (!keyword) return true
+          const name = `${application.surname} ${application.givenNames}`.toLowerCase()
+          return (
+            (application.applicationNo ?? "").toLowerCase().includes(keyword) ||
+            name.includes(keyword) ||
+            application.surname.toLowerCase().includes(keyword) ||
+            application.givenNames.toLowerCase().includes(keyword) ||
+            application.passportNumber.toLowerCase().includes(keyword)
+          )
+        })
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      return paginate(items, query)
+    },
+  },
+  {
+    method: "GET",
+    pattern: "/applications/:id",
+    auth: ["applicant.read"],
+    handler: ({ params }): Application => {
+      const application = getDb().applications.find((item) => item.id === params.id)
+      if (!application) notFound("申请")
+      return application
+    },
+  },
+  {
+    method: "POST",
+    pattern: "/applications/:id/decision",
+    auth: ["applicant.update"],
+    handler: ({ params, body, me }: Ctx<{ action: ApplicationDecisionAction; note?: string }>): Application => {
+      const application = getDb().applications.find((item) => item.id === params.id)
+      if (!application) notFound("申请")
+      const note = (body.note ?? "").trim()
+      let next: ApplicationStatus | "" = ""
+      let timelineNote = ""
+      if (body.action === "start_review" && (application.status === "submitted" || application.status === "supplement_required")) {
+        next = "under_review"
+        timelineNote = note || "已受理，进入审核。"
+      } else if (body.action === "request_supplement" && application.status === "under_review") {
+        if (!note) throw new ApiError(400, "VALIDATION_FAILED", "请填写补件说明。", { note: "请填写补件说明" })
+        next = "supplement_required"
+        timelineNote = note
+      } else if (body.action === "approve" && application.status === "under_review") {
+        next = "approved"
+        timelineNote = note || "审核通过。"
+      } else if (body.action === "reject" && application.status === "under_review") {
+        if (!note) throw new ApiError(400, "VALIDATION_FAILED", "请填写驳回理由。", { note: "请填写驳回理由" })
+        next = "rejected"
+        timelineNote = note
+      } else {
+        conflict("当前状态不能执行该审批操作。")
+      }
+      const at = nowIso()
+      if (next === "approved" && !application.fileNo) {
+        const db = getDb()
+        const year = new Date().getFullYear()
+        let serial = db.applicants.length + 173
+        let fileNo = `A-${year}-${String(serial).padStart(6, "0")}`
+        while (db.applicants.some((item) => item.fileNo === fileNo)) {
+          serial += 1
+          fileNo = `A-${year}-${String(serial).padStart(6, "0")}`
+        }
+        const applicant: MockApplicant = {
+          id: nextId("a"),
+          fileNo,
+          surname: application.surname,
+          givenNames: application.givenNames,
+          nativeName: application.nativeName,
+          sex: application.sex,
+          dateOfBirth: application.dateOfBirth,
+          placeOfBirth: application.placeOfBirth,
+          nationality: application.nationality,
+          maritalStatus: application.maritalStatus,
+          occupation: application.occupation,
+          phone: application.phone,
+          email: application.email,
+          address: application.address,
+          remarks: `由申请 ${application.applicationNo} 建档`,
+          status: "active",
+          createdAt: at,
+          updatedAt: at,
+        }
+        db.applicants.push(applicant)
+        if (application.passportNumber) {
+          db.documents.push({
+            id: nextId("d"),
+            applicantId: applicant.id,
+            type: "passport",
+            number: application.passportNumber,
+            issuingCountry: application.passportIssuingCountry,
+            issuingAuthority: application.passportIssuingAuthority,
+            issueDate: application.passportIssueDate,
+            expiryDate: application.passportExpiryDate,
+            verification: "verified",
+            verificationNote: "",
+            verifiedBy: me.fullName,
+            verifiedAt: at,
+            attachments: [],
+            createdAt: at,
+            updatedAt: at,
+          })
+        }
+        application.fileNo = fileNo
+        timelineNote = note || "审核通过，已建立申请人档案。"
+      }
+      application.status = next
+      application.reviewNote = note || application.reviewNote
+      application.updatedAt = at
+      application.timeline.push({ status: next, note: timelineNote, actor: me.fullName, at })
+      recordNotification({
+        recipientType: "portal",
+        recipientId: application.accountId,
+        title: "申请状态已更新",
+        body: `${application.applicationNo ?? "你的申请"}：${timelineNote}`,
+      })
+      recordAudit({
+        actorType: "staff",
+        actorId: me.id,
+        actorName: me.fullName,
+        action: "application.decision",
+        resourceType: "application",
+        resourceId: application.id,
+        detail: `${body.action} ${application.applicationNo ?? ""}`.trim(),
+      })
+      persist()
+      return application
+    },
+  },
+  {
+    method: "GET",
+    pattern: "/reports",
+    auth: ["applicant.read"],
+    handler: (): ReportSummary => {
+      const rows = getDb().applications
+      const byStatus: ReportSummary["byStatus"] = {}
+      const byType: ReportSummary["byType"] = {}
+      let approved = 0
+      let rejected = 0
+      let days = 0
+      let finished = 0
+      for (const row of rows) {
+        byStatus[row.status] = (byStatus[row.status] ?? 0) + 1
+        byType[row.type] = (byType[row.type] ?? 0) + 1
+        if (row.status === "approved") approved += 1
+        if (row.status === "rejected") rejected += 1
+        if ((row.status === "approved" || row.status === "rejected") && row.submittedAt) {
+          days += (Date.parse(row.updatedAt) - Date.parse(row.submittedAt)) / 86_400_000
+          finished += 1
+        }
+      }
+      const decided = approved + rejected
+      return {
+        applicationTotal: rows.length,
+        approvalRate: decided ? approved / decided : null,
+        averageProcessingDays: finished ? Math.round((days / finished) * 10) / 10 : null,
+        byStatus,
+        byType,
+      }
+    },
+  },
+  {
+    method: "GET",
+    pattern: "/notifications",
+    handler: ({ me }): AppNotification[] =>
+      getDb()
+        .notifications.filter((item) => item.recipientType === "staff" && item.recipientId === me.id)
+        .slice(0, 50)
+        .map(({ recipientType: _recipientType, recipientId: _recipientId, ...item }) => item),
+  },
+  {
+    method: "POST",
+    pattern: "/notifications/:id/read",
+    handler: ({ params, me }) => {
+      const item = getDb().notifications.find(
+        (entry) => entry.id === params.id && entry.recipientType === "staff" && entry.recipientId === me.id
+      )
+      if (item && !item.readAt) item.readAt = nowIso()
+      persist()
+    },
+  },
+  {
+    method: "GET",
+    pattern: "/audit-logs",
+    auth: ["user.read", "role.read"],
+    handler: ({ query }): Paginated<AuditLog> => {
+      const keyword = String(query.keyword ?? "").trim().toLowerCase()
+      const items = getDb().auditLogs.filter((log) => {
+        if (!keyword) return true
+        return (
+          log.actorName.toLowerCase().includes(keyword) ||
+          log.action.toLowerCase().includes(keyword) ||
+          log.detail.toLowerCase().includes(keyword) ||
+          log.resourceType.toLowerCase().includes(keyword)
+        )
+      })
+      return paginate(items, query)
     },
   },
 
