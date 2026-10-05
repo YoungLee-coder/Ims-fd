@@ -1,3 +1,4 @@
+import type { TFunction } from "@/lib/i18n/translate"
 import type {
   ApplicantStatus,
   ApplicationDecisionAction,
@@ -35,8 +36,9 @@ export const COUNTRIES: { code: string; name: string }[] = [
   { code: "VNM", name: "越南" },
 ]
 
-export function countryName(code: string) {
-  return COUNTRIES.find((c) => c.code === code)?.name ?? code
+export function countryName(code: string, t: TFunction) {
+  const name = COUNTRIES.find((c) => c.code === code)?.name
+  return name ? t(name) : code
 }
 
 export const DEPARTMENTS = [

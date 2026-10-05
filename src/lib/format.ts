@@ -1,7 +1,8 @@
 import { differenceInCalendarDays, format, formatDistanceToNowStrict, parseISO } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { enUS, zhCN } from "date-fns/locale"
 
 import { EXPIRY_WARNING_DAYS } from "@/lib/constants"
+import type { Locale } from "@/lib/i18n/config"
 
 export function formatDate(value: string | null | undefined) {
   if (!value) return "—"
@@ -13,9 +14,12 @@ export function formatDateTime(value: string | null | undefined) {
   return format(parseISO(value), "yyyy-MM-dd HH:mm")
 }
 
-export function formatRelative(value: string | null | undefined) {
-  if (!value) return "从未"
-  return `${formatDistanceToNowStrict(parseISO(value), { locale: zhCN })}前`
+export function formatRelative(value: string | null | undefined, locale: Locale) {
+  if (!value) return locale === "en" ? "Never" : "从未"
+  const date = parseISO(value)
+  return locale === "en"
+    ? formatDistanceToNowStrict(date, { locale: enUS, addSuffix: true })
+    : `${formatDistanceToNowStrict(date, { locale: zhCN })}前`
 }
 
 export function formatFileSize(bytes: number) {

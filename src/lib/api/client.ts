@@ -1,10 +1,19 @@
 import { PORTAL_BASE_PATH, appConfig } from "@/lib/config"
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config"
+import { translate } from "@/lib/i18n/translate"
 import {
   clearPortalSession,
   clearSession,
   getPortalToken,
   getToken,
 } from "@/lib/api/session"
+
+/** 非 React 上下文（请求层、表单校验）读取当前界面语言；根布局已把它写在 <html lang>。 */
+export function currentLocale() {
+  if (typeof document === "undefined") return DEFAULT_LOCALE
+  const lang = document.documentElement.lang
+  return isLocale(lang) ? lang : DEFAULT_LOCALE
+}
 
 export class ApiError extends Error {
   constructor(
@@ -110,7 +119,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiError(
       response.status,
       payload?.code ?? "HTTP_ERROR",
-      payload?.message ?? `请求失败（${response.status}）`,
+      payload?.message ?? translate(currentLocale(), "请求失败（{status}）", { status: response.status }),
       payload?.fieldErrors
     )
   }
@@ -136,7 +145,7 @@ export const api = createApi("staff")
 export const portalApi = createApi("portal")
 
 export function errorMessage(error: unknown) {
-  if (error instanceof ApiError) return error.message
-  if (error instanceof Error) return error.message
-  return "发生未知错误，请稍后重试。"
+  const locale = currentLocale()
+  if (error instanceof Error) return translate(locale, error.message)
+  return translate(locale, "发生未知错误，请稍后重试。")
 }

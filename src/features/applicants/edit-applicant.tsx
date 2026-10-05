@@ -9,8 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { errorMessage } from "@/lib/api/client"
 import { useApplicant } from "@/features/applicants/api"
 import { ApplicantForm } from "@/features/applicants/applicant-form"
+import { useT } from "@/lib/i18n/client"
 
 export function EditApplicant({ id }: { id: string }) {
+  const t = useT()
   const { data, isPending, isError, error } = useApplicant(id)
 
   if (isPending) {
@@ -26,12 +28,12 @@ export function EditApplicant({ id }: { id: string }) {
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>
-          <EmptyTitle>无法加载档案</EmptyTitle>
+          <EmptyTitle>{t("无法加载档案")}</EmptyTitle>
           <EmptyDescription>{errorMessage(error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline" asChild>
-            <Link href="/applicants">返回档案列表</Link>
+            <Link href="/applicants">{t("返回档案列表")}</Link>
           </Button>
         </EmptyContent>
       </Empty>
@@ -41,7 +43,7 @@ export function EditApplicant({ id }: { id: string }) {
   return (
     <>
       <PageHeader
-        title={`编辑档案 · ${data.surname} ${data.givenNames}`}
+        title={t("编辑档案 · {surname} {givenNames}", { surname: data.surname, givenNames: data.givenNames })}
         description={<span className="doc-number">{data.fileNo}</span>}
         className="mb-10"
       />

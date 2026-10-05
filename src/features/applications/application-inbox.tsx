@@ -27,11 +27,14 @@ import { APPLICATION_STATUS_LABELS, APPLICATION_TYPE_LABELS, countryName } from 
 import { formatRelative } from "@/lib/format"
 import { useStaffApplications } from "@/features/applications/api"
 import type { ApplicationStatus } from "@/types"
+import { useLocale, useT } from "@/lib/i18n/client"
 
 const PAGE_SIZE = 8
 const ALL = "all"
 
 export function ApplicationInbox() {
+  const t = useT()
+  const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -69,8 +72,8 @@ export function ApplicationInbox() {
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="申请受理"
-        description="查看申请人提交的业务申请，受理后可要求补件、通过建档或驳回。"
+        title={t("申请受理")}
+        description={t("查看申请人提交的业务申请，受理后可要求补件、通过建档或驳回。")}
       />
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -82,17 +85,17 @@ export function ApplicationInbox() {
             type="search"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="申请编号 / 姓名 / 护照号码"
-            aria-label="搜索申请"
+            placeholder={t("申请编号 / 姓名 / 护照号码")}
+            aria-label={t("搜索申请")}
           />
         </InputGroup>
         <Select value={status ?? ALL} onValueChange={(v) => setParams({ status: v === ALL ? undefined : v })}>
-          <SelectTrigger className="sm:w-36" aria-label="申请状态">
+          <SelectTrigger className="sm:w-36" aria-label={t("申请状态")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value={ALL}>全部状态</SelectItem>
+              <SelectItem value={ALL}>{t("全部状态")}</SelectItem>
             </SelectGroup>
             <SelectSeparator />
             <SelectGroup>
@@ -116,16 +119,16 @@ export function ApplicationInbox() {
         ) : isError ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>无法加载申请</EmptyTitle>
+              <EmptyTitle>{t("无法加载申请")}</EmptyTitle>
               <EmptyDescription>{errorMessage(error)}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : !data?.items.length ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>{filtered ? "没有符合条件的申请" : "还没有申请"}</EmptyTitle>
+              <EmptyTitle>{filtered ? t("没有符合条件的申请") : t("还没有申请")}</EmptyTitle>
               <EmptyDescription>
-                {filtered ? "试试放宽筛选条件。" : "申请人在门户提交后，申请会出现在这里。"}
+                {filtered ? t("试试放宽筛选条件。") : t("申请人在门户提交后，申请会出现在这里。")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -133,12 +136,12 @@ export function ApplicationInbox() {
           <Table className={isPlaceholderData ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">申请人</TableHead>
-                <TableHead>申请编号</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>国籍</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead className="pr-4 text-right">最近更新</TableHead>
+                <TableHead className="pl-4">{t("申请人")}</TableHead>
+                <TableHead>{t("申请编号")}</TableHead>
+                <TableHead>{t("类型")}</TableHead>
+                <TableHead>{t("国籍")}</TableHead>
+                <TableHead>{t("状态")}</TableHead>
+                <TableHead className="pr-4 text-right">{t("最近更新")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,14 +161,14 @@ export function ApplicationInbox() {
                     </Link>
                   </TableCell>
                   <TableCell className="doc-number text-muted-foreground">
-                    {application.applicationNo ?? "草稿"}
+                    {application.applicationNo ?? t("草稿")}
                   </TableCell>
                   <TableCell>{APPLICATION_TYPE_LABELS[application.type]}</TableCell>
                   <TableCell>
                     {application.nationality ? (
                       <>
                         <span className="doc-number mr-1.5 text-xs text-muted-foreground">{application.nationality}</span>
-                        {countryName(application.nationality)}
+                        {countryName(application.nationality, t)}
                       </>
                     ) : (
                       "—"
@@ -175,7 +178,7 @@ export function ApplicationInbox() {
                     <ApplicationStatusBadge status={application.status} />
                   </TableCell>
                   <TableCell className="pr-4 text-right text-muted-foreground">
-                    {formatRelative(application.updatedAt)}
+                    {formatRelative(application.updatedAt, locale)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -185,14 +188,14 @@ export function ApplicationInbox() {
       </div>
 
       {data && data.total > 0 && (
-        <nav aria-label="分页" className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <nav aria-label={t("分页")} className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
           <span className="tabular-nums">
-            共 {data.total} 条 · 第 {data.page} / {totalPages} 页
+            {t("共 {total} 条 · 第 {page} / {totalPages} 页", { total: data.total, page: data.page, totalPages })}
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setParams({ page: String(page - 1) })}>
               <ChevronLeftIcon data-icon="inline-start" />
-              上一页
+              {t("上一页")}
             </Button>
             <Button
               variant="outline"
@@ -200,7 +203,7 @@ export function ApplicationInbox() {
               disabled={page >= totalPages}
               onClick={() => setParams({ page: String(page + 1) })}
             >
-              下一页
+              {t("下一页")}
               <ChevronRightIcon data-icon="inline-end" />
             </Button>
           </div>

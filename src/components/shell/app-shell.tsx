@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useT } from "@/lib/i18n/client"
 import { errorMessage, leaveToLogin } from "@/lib/api/client"
 import { getToken } from "@/lib/api/session"
 import { AuthProvider, useCurrentUserQuery } from "@/features/auth/auth-provider"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const hasToken = getToken() !== null
   const me = useCurrentUserQuery(hasToken)
 
@@ -24,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (me.isPending) {
     return (
-      <div className="flex min-h-svh" aria-busy="true" aria-label="正在加载">
+      <div className="flex min-h-svh" aria-busy="true" aria-label={t("正在加载")}>
         <div className="hidden w-64 flex-col gap-3 bg-sidebar p-4 md:flex">
           <Skeleton className="h-9 w-40" />
           <Skeleton className="mt-6 h-6 w-full" />
@@ -46,11 +48,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <EmptyMedia variant="icon">
             <CloudOffIcon />
           </EmptyMedia>
-          <EmptyTitle>无法连接服务器</EmptyTitle>
+          <EmptyTitle>{t("无法连接服务器")}</EmptyTitle>
           <EmptyDescription>{errorMessage(me.error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button onClick={() => me.refetch()}>重试</Button>
+          <Button onClick={() => me.refetch()}>{t("重试")}</Button>
         </EmptyContent>
       </Empty>
     )

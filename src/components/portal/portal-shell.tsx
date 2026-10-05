@@ -7,6 +7,7 @@ import { PortalFooter, PortalHeader } from "@/components/portal/portal-header"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useT } from "@/lib/i18n/client"
 import { errorMessage, leaveToLogin } from "@/lib/api/client"
 import { getPortalToken } from "@/lib/api/session"
 import { PortalAuthProvider, usePortalAuth } from "@/features/portal/portal-auth-provider"
@@ -17,6 +18,7 @@ import { useCurrentAccountQuery } from "@/features/portal/api"
  * 账号无效（401）时 client 层已整页跳转到门户登录页，这里只需处理加载与网络错误。
  */
 export function PortalShell({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const hasToken = getPortalToken() !== null
   const me = useCurrentAccountQuery(hasToken)
 
@@ -27,7 +29,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
 
   if (me.isPending) {
     return (
-      <div className="flex min-h-svh flex-col bg-muted/30" aria-busy="true" aria-label="正在加载">
+      <div className="flex min-h-svh flex-col bg-muted/30" aria-busy="true" aria-label={t("正在加载")}>
         <PortalHeader account={null} />
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-8 sm:px-6 lg:py-12">
           <Skeleton className="h-8 w-48" />
@@ -46,11 +48,11 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             <EmptyMedia variant="icon">
               <CloudOffIcon />
             </EmptyMedia>
-            <EmptyTitle>无法连接服务器</EmptyTitle>
+            <EmptyTitle>{t("无法连接服务器")}</EmptyTitle>
             <EmptyDescription>{errorMessage(me.error)}</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button onClick={() => me.refetch()}>重试</Button>
+            <Button onClick={() => me.refetch()}>{t("重试")}</Button>
           </EmptyContent>
         </Empty>
       </div>

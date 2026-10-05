@@ -41,6 +41,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { initials } from "@/lib/format"
+import { useT } from "@/lib/i18n/client"
 import { useAuth } from "@/features/auth/auth-provider"
 import { useDashboardSummary } from "@/features/dashboard/api"
 import { useReports } from "@/features/reports/api"
@@ -91,6 +92,7 @@ function isActive(pathname: string, item: NavItem) {
 }
 
 export function AppSidebar() {
+  const t = useT()
   const pathname = usePathname()
   const { can } = useAuth()
   const summary = useDashboardSummary()
@@ -110,7 +112,7 @@ export function AppSidebar() {
           if (!items.length) return null
           return (
             <SidebarGroup key={group.label}>
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupLabel>{t(group.label)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {items.map((item) => {
@@ -122,15 +124,15 @@ export function AppSidebar() {
                           : undefined
                     return (
                       <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild isActive={isActive(pathname, item)} tooltip={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive(pathname, item)} tooltip={t(item.title)}>
                           <Link href={item.href}>
                             <item.icon />
-                            <span>{item.title}</span>
+                            <span>{t(item.title)}</span>
                           </Link>
                         </SidebarMenuButton>
                         {!!count && (
                           <SidebarMenuBadge
-                            aria-label={item.badge === "submittedApplications" ? `${count} 份待受理申请` : `${count} 个待审核账号`}
+                            aria-label={item.badge === "submittedApplications" ? t("{count} 份待受理申请", { count }) : t("{count} 个待审核账号", { count })}
                           >
                             {count}
                           </SidebarMenuBadge>
@@ -154,8 +156,9 @@ export function AppSidebar() {
 }
 
 function UserMenu() {
+  const t = useT()
   const { user, logout } = useAuth()
-  const roleNames = user.roles.map((r) => r.name).join("、") || "未分配角色"
+  const roleNames = user.roles.map((r) => t(r.name)).join(t("、")) || t("未分配角色")
 
   return (
     <SidebarMenu>
@@ -179,14 +182,14 @@ function UserMenu() {
             <DropdownMenuLabel className="flex flex-col gap-0.5 font-normal">
               <span className="text-sm font-medium text-foreground">{user.fullName}</span>
               <span className="text-xs text-muted-foreground">
-                <span className="doc-number">{user.employeeId}</span> · {user.department}
+                <span className="doc-number">{user.employeeId}</span> · {t(user.department)}
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={logout}>
                 <LogOutIcon />
-                退出登录
+                {t("退出登录")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

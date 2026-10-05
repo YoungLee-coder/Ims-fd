@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { errorMessage } from "@/lib/api/client"
 import { setSession } from "@/lib/api/session"
 import { appConfig } from "@/lib/config"
+import { useT } from "@/lib/i18n/client"
 import { authApi, authKeys } from "@/features/auth/api"
 import { loginSchema, type LoginValues } from "@/features/auth/schemas"
 
@@ -28,6 +29,7 @@ function safeNext(next: string | null) {
 }
 
 export function LoginForm() {
+  const t = useT()
   const router = useRouter()
   const searchParams = useSearchParams()
   const queryClient = useQueryClient()
@@ -49,32 +51,32 @@ export function LoginForm() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-2xl font-semibold">登录</h2>
-        <p className="text-sm text-muted-foreground">使用工作账号登录{appConfig.systemName}。</p>
+        <h2 className="text-2xl font-semibold">{t("登录")}</h2>
+        <p className="text-sm text-muted-foreground">{t("使用工作账号登录{system}。", { system: t(appConfig.systemName) })}</p>
       </div>
 
       <form method="post" noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))} className="flex flex-col gap-6">
         {login.isError && (
           <Alert variant="destructive">
             <CircleAlertIcon />
-            <AlertTitle>无法登录</AlertTitle>
+            <AlertTitle>{t("无法登录")}</AlertTitle>
             <AlertDescription>{errorMessage(login.error)}</AlertDescription>
           </Alert>
         )}
         <FieldGroup>
-          <TextField control={form.control} name="username" label="用户名" autoComplete="username" autoFocus />
-          <PasswordField control={form.control} name="password" label="密码" />
+          <TextField control={form.control} name="username" label={t("用户名")} autoComplete="username" autoFocus />
+          <PasswordField control={form.control} name="password" label={t("密码")} />
         </FieldGroup>
         <Button type="submit" size="lg" disabled={login.isPending || login.isSuccess}>
           {(login.isPending || login.isSuccess) && <Spinner data-icon="inline-start" />}
-          登录
+          {t("登录")}
         </Button>
       </form>
 
       <p className="text-sm text-muted-foreground">
-        新入职人员？
+        {t("新入职人员？")}
         <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-          申请开通账号
+          {t("申请开通账号")}
         </Link>
       </p>
 
@@ -82,7 +84,7 @@ export function LoginForm() {
         <Separator />
         <div className="flex items-baseline justify-between">
           <h3 id="demo-accounts" className="text-xs font-medium text-muted-foreground">
-            演示账号
+            {t("演示账号")}
           </h3>
         </div>
         <ul className="flex flex-col">
@@ -96,7 +98,7 @@ export function LoginForm() {
               className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:bg-accent"
             >
               <span className="doc-number">{DEMO_ACCOUNT.username}</span>
-              <span className="text-muted-foreground">{DEMO_ACCOUNT.role}</span>
+              <span className="text-muted-foreground">{t(DEMO_ACCOUNT.role)}</span>
             </button>
           </li>
         </ul>

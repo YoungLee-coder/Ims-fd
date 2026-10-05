@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useT } from "@/lib/i18n/client"
 
 interface BaseProps<T extends FieldValues> {
   control: Control<T>
@@ -124,12 +125,13 @@ export function SelectField<T extends FieldValues>({
   required,
   disabled,
   className,
-  placeholder = "请选择",
+  placeholder,
   options,
 }: BaseProps<T> & {
   placeholder?: string
   options: { value: string; label: React.ReactNode }[]
 }) {
+  const t = useT()
   return (
     <Controller
       control={control}
@@ -141,7 +143,7 @@ export function SelectField<T extends FieldValues>({
           </FieldLabel>
           <Select value={field.value ?? ""} onValueChange={field.onChange} disabled={disabled} name={field.name}>
             <SelectTrigger id={name} aria-invalid={fieldState.invalid} onBlur={field.onBlur} className="w-full">
-              <SelectValue placeholder={placeholder} />
+              <SelectValue placeholder={placeholder ?? t("请选择")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -171,6 +173,7 @@ export function PasswordField<T extends FieldValues>({
   className,
   autoComplete = "current-password",
 }: BaseProps<T> & { autoComplete?: string }) {
+  const t = useT()
   const [visible, setVisible] = useState(false)
   return (
     <Controller
@@ -195,7 +198,7 @@ export function PasswordField<T extends FieldValues>({
               <InputGroupButton
                 size="icon-xs"
                 onClick={() => setVisible((v) => !v)}
-                aria-label={visible ? "隐藏密码" : "显示密码"}
+                aria-label={visible ? t("隐藏密码") : t("显示密码")}
                 aria-pressed={visible}
               >
                 {visible ? <EyeOffIcon /> : <EyeIcon />}

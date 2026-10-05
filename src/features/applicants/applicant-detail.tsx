@@ -38,10 +38,12 @@ import { useApplicant, useDeleteApplicant, useSaveApplicant } from "@/features/a
 import { toFormValues, toPayload, type ApplicantFormValues } from "@/features/applicants/schema"
 import { DocumentList } from "@/features/documents/document-list"
 import type { Applicant } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 type Tab = "profile" | "documents"
 
 export function ApplicantDetail({ id }: { id: string }) {
+  const t = useT()
   const { data: applicant, isPending, isError, error } = useApplicant(id)
   const { can } = useAuth()
   const router = useRouter()
@@ -70,12 +72,12 @@ export function ApplicantDetail({ id }: { id: string }) {
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>
-          <EmptyTitle>{missing ? "档案不存在" : "加载失败"}</EmptyTitle>
-          <EmptyDescription>{missing ? "该档案可能已被删除，或链接有误。" : errorMessage(error)}</EmptyDescription>
+          <EmptyTitle>{missing ? t("档案不存在") : t("加载失败")}</EmptyTitle>
+          <EmptyDescription>{missing ? t("该档案可能已被删除，或链接有误。") : errorMessage(error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline" asChild>
-            <Link href="/applicants">返回档案列表</Link>
+            <Link href="/applicants">{t("返回档案列表")}</Link>
           </Button>
         </EmptyContent>
       </Empty>
@@ -99,11 +101,11 @@ export function ApplicantDetail({ id }: { id: string }) {
         <div className="border-b">
           <TabsList variant="line">
             <TabsTrigger value="profile" className="px-3">
-              个人信息
+              {t("个人信息")}
             </TabsTrigger>
             <Can anyOf="document.read">
               <TabsTrigger value="documents" className="px-3">
-                证件
+                {t("证件")}
                 <span className="tabular-nums text-muted-foreground">{applicant.documentCount}</span>
               </TabsTrigger>
             </Can>
@@ -123,16 +125,17 @@ export function ApplicantDetail({ id }: { id: string }) {
 }
 
 function DataPage({ applicant }: { applicant: Applicant }) {
+  const t = useT()
   return (
-    <section aria-label="档案概要" className="overflow-hidden rounded-lg border bg-card">
+    <section aria-label={t("档案概要")} className="overflow-hidden rounded-lg border bg-card">
       <div className="flex flex-col gap-6 p-5 sm:flex-row sm:p-6">
         <div
           role="img"
-          aria-label="证件照占位"
+          aria-label={t("证件照占位")}
           className="flex h-32 w-26 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed bg-muted text-muted-foreground"
         >
           <UserRoundIcon className="size-8" strokeWidth={1.5} />
-          <span className="text-[0.65rem]">证件照</span>
+          <span className="text-[0.65rem]">{t("证件照")}</span>
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
@@ -151,10 +154,10 @@ function DataPage({ applicant }: { applicant: Applicant }) {
 
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4">
             {[
-              ["档案编号", <span key="f" className="doc-number">{applicant.fileNo}</span>],
-              ["国籍", `${countryName(applicant.nationality)} · ${applicant.nationality}`],
-              ["出生日期", <span key="d" className="tabular-nums">{formatDate(applicant.dateOfBirth)}</span>],
-              ["性别", SEX_LABELS[applicant.sex]],
+              [t("档案编号"), <span key="f" className="doc-number">{applicant.fileNo}</span>],
+              [t("国籍"), `${countryName(applicant.nationality, t)} · ${applicant.nationality}`],
+              [t("出生日期"), <span key="d" className="tabular-nums">{formatDate(applicant.dateOfBirth)}</span>],
+              [t("性别"), SEX_LABELS[applicant.sex]],
             ].map(([label, value]) => (
               <div key={label as string} className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -175,6 +178,7 @@ function DataPage({ applicant }: { applicant: Applicant }) {
 }
 
 function ApplicantActions({ applicant }: { applicant: Applicant }) {
+  const t = useT()
   const router = useRouter()
   const { can } = useAuth()
   const save = useSaveApplicant()
@@ -190,7 +194,7 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
     save.mutate(
       { id: applicant.id, payload: toPayload({ ...values, status: "archived" }) },
       {
-        onSuccess: () => toast.success("档案已归档"),
+        onSuccess: () => toast.success(t("档案已归档")),
         onError: (e) => toast.error(errorMessage(e)),
       }
     )
@@ -202,13 +206,13 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
         <Button variant="outline" asChild>
           <Link href={`/applicants/${applicant.id}/edit`}>
             <PencilIcon data-icon="inline-start" />
-            编辑
+            {t("编辑")}
           </Link>
         </Button>
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" aria-label="更多操作">
+          <Button variant="outline" size="icon" aria-label={t("更多操作")}>
             <EllipsisIcon />
           </Button>
         </DropdownMenuTrigger>
@@ -217,7 +221,7 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
             <DropdownMenuGroup>
               <DropdownMenuItem disabled={applicant.status === "archived" || save.isPending} onSelect={archive}>
                 <ArchiveIcon />
-                归档
+                {t("归档")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           )}
@@ -226,7 +230,7 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
             <DropdownMenuGroup>
               <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
                 <Trash2Icon />
-                删除档案
+                {t("删除档案")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           )}
@@ -236,26 +240,26 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除档案 {applicant.fileNo}？</AlertDialogTitle>
+            <AlertDialogTitle>{t("删除档案 {fileNo}？", { fileNo: applicant.fileNo })}</AlertDialogTitle>
             <AlertDialogDescription>
-              档案及其下 {applicant.documentCount} 份证件记录将被永久删除，且无法恢复。若申请人已离境，建议改为归档。
+              {t("档案及其下 {documentCount} 份证件记录将被永久删除，且无法恢复。若申请人已离境，建议改为归档。", { documentCount: applicant.documentCount })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t("取消")}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() =>
                 remove.mutate(applicant.id, {
                   onSuccess: () => {
-                    toast.success("档案已删除")
+                    toast.success(t("档案已删除"))
                     router.replace("/applicants")
                   },
                   onError: (e) => toast.error(errorMessage(e)),
                 })
               }
             >
-              永久删除
+              {t("永久删除")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -265,6 +269,7 @@ function ApplicantActions({ applicant }: { applicant: Applicant }) {
 }
 
 function InfoSection({ title, rows }: { title: string; rows: [string, React.ReactNode][] }) {
+  const t = useT()
   return (
     <section className="grid gap-4 py-6 first:pt-0 md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:gap-12">
       <h2 className="font-semibold">{title}</h2>
@@ -272,7 +277,7 @@ function InfoSection({ title, rows }: { title: string; rows: [string, React.Reac
         {rows.map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className="break-words">{value || <span className="text-muted-foreground">未填写</span>}</dd>
+            <dd className="break-words">{value || <span className="text-muted-foreground">{t("未填写")}</span>}</dd>
           </div>
         ))}
       </dl>
@@ -281,41 +286,42 @@ function InfoSection({ title, rows }: { title: string; rows: [string, React.Reac
 }
 
 function ProfileView({ applicant: a }: { applicant: Applicant }) {
+  const t = useT()
   return (
     <div className="flex flex-col divide-y">
       <InfoSection
-        title="身份信息"
+        title={t("身份信息")}
         rows={[
-          ["姓（Surname）", a.surname],
-          ["名（Given names）", a.givenNames],
-          ["原文姓名", a.nativeName],
-          ["性别", SEX_LABELS[a.sex]],
-          ["出生日期", formatDate(a.dateOfBirth)],
-          ["出生地", a.placeOfBirth],
-          ["国籍", `${countryName(a.nationality)}（${a.nationality}）`],
+          [t("姓（Surname）"), a.surname],
+          [t("名（Given names）"), a.givenNames],
+          [t("原文姓名"), a.nativeName],
+          [t("性别"), SEX_LABELS[a.sex]],
+          [t("出生日期"), formatDate(a.dateOfBirth)],
+          [t("出生地"), a.placeOfBirth],
+          [t("国籍"), `${countryName(a.nationality, t)} (${a.nationality})`],
         ]}
       />
       <InfoSection
-        title="联系方式"
+        title={t("联系方式")}
         rows={[
-          ["联系电话", a.phone && <span className="tabular-nums">{a.phone}</span>],
-          ["电子邮箱", a.email],
-          ["境内居住地址", a.address],
+          [t("联系电话"), a.phone && <span className="tabular-nums">{a.phone}</span>],
+          [t("电子邮箱"), a.email],
+          [t("境内居住地址"), a.address],
         ]}
       />
       <InfoSection
-        title="其他信息"
+        title={t("其他信息")}
         rows={[
-          ["婚姻状况", MARITAL_LABELS[a.maritalStatus]],
-          ["职业", a.occupation],
-          ["备注", a.remarks],
+          [t("婚姻状况"), MARITAL_LABELS[a.maritalStatus]],
+          [t("职业"), a.occupation],
+          [t("备注"), a.remarks],
         ]}
       />
       <InfoSection
-        title="系统记录"
+        title={t("系统记录")}
         rows={[
-          ["建档时间", <span key="c" className="tabular-nums">{formatDateTime(a.createdAt)}</span>],
-          ["最近更新", <span key="u" className="tabular-nums">{formatDateTime(a.updatedAt)}</span>],
+          [t("建档时间"), <span key="c" className="tabular-nums">{formatDateTime(a.createdAt)}</span>],
+          [t("最近更新"), <span key="u" className="tabular-nums">{formatDateTime(a.updatedAt)}</span>],
         ]}
       />
     </div>

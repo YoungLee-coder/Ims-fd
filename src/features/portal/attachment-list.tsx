@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { formatFileSize } from "@/lib/format"
 import type { Attachment, ID } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 export function AttachmentList({
   attachments,
   onRemove,
   removing,
-  emptyHint = "尚未上传任何材料。",
+  emptyHint,
 }: {
   attachments: Attachment[]
   /** 传入后每行显示移除按钮（仅草稿可移除） */
@@ -17,12 +18,13 @@ export function AttachmentList({
   removing?: boolean
   emptyHint?: string
 }) {
+  const t = useT()
   if (attachments.length === 0) {
     return (
       <Empty className="rounded-lg border border-dashed py-8">
         <EmptyHeader>
-          <EmptyTitle className="text-sm">暂无材料</EmptyTitle>
-          <EmptyDescription>{emptyHint}</EmptyDescription>
+          <EmptyTitle className="text-sm">{t("暂无材料")}</EmptyTitle>
+          <EmptyDescription>{emptyHint ?? t("尚未上传任何材料。")}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -55,7 +57,7 @@ export function AttachmentList({
               size="icon-xs"
               disabled={removing}
               onClick={() => onRemove(attachment.id)}
-              aria-label={`移除 ${attachment.fileName}`}
+              aria-label={t("移除 {fileName}", { fileName: attachment.fileName })}
             >
               <XIcon />
             </Button>

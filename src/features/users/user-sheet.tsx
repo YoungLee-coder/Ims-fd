@@ -19,6 +19,8 @@ import { accountFields, passwordRule } from "@/features/auth/schemas"
 import { RoleChecklist } from "@/features/roles/role-checklist"
 import { useCreateUser, useSetUserStatus, useUpdateUser } from "@/features/users/api"
 import type { User } from "@/types"
+import { useT } from "@/lib/i18n/client"
+import type { TFunction } from "@/lib/i18n/translate"
 
 export type UserSheetMode = { kind: "create" } | { kind: "edit"; user: User } | { kind: "approve"; user: User }
 
@@ -41,13 +43,14 @@ const TITLES = {
 }
 
 export function UserSheet({ mode, onClose }: { mode: UserSheetMode | null; onClose: () => void }) {
+  const t = useT()
   const kind = mode?.kind ?? "create"
   return (
     <Sheet open={!!mode} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full gap-0 overscroll-contain data-[side=right]:sm:max-w-lg">
         <SheetHeader className="border-b">
-          <SheetTitle>{TITLES[kind].title}</SheetTitle>
-          <SheetDescription>{TITLES[kind].description}</SheetDescription>
+          <SheetTitle>{t(TITLES[kind].title)}</SheetTitle>
+          <SheetDescription>{t(TITLES[kind].description)}</SheetDescription>
         </SheetHeader>
         {mode?.kind === "create" && <CreateForm onDone={onClose} />}
         {mode?.kind === "edit" && <EditForm key={mode.user.id} user={mode.user} onDone={onClose} />}
@@ -62,10 +65,11 @@ function Body({ children }: { children: React.ReactNode }) {
 }
 
 function Footer({ pending, label, onCancel }: { pending: boolean; label: string; onCancel: () => void }) {
+  const t = useT()
   return (
     <SheetFooter className="flex-row justify-end border-t">
       <Button type="button" variant="outline" onClick={onCancel}>
-        取消
+        {t("取消")}
       </Button>
       <Button type="submit" disabled={pending}>
         {pending && <Spinner data-icon="inline-start" />}
@@ -76,19 +80,21 @@ function Footer({ pending, label, onCancel }: { pending: boolean; label: string;
 }
 
 function ErrorAlert({ error }: { error: unknown }) {
+  const t = useT()
   if (!error || (error instanceof ApiError && error.fieldErrors)) return null
   return (
     <Alert variant="destructive">
       <CircleAlertIcon />
-      <AlertTitle>操作失败</AlertTitle>
+      <AlertTitle>{t("操作失败")}</AlertTitle>
       <AlertDescription>{errorMessage(error)}</AlertDescription>
     </Alert>
   )
 }
 
-const departmentOptions = DEPARTMENTS.map((d) => ({ value: d, label: d }))
+const departmentOptions = (t: TFunction) => DEPARTMENTS.map((d) => ({ value: d, label: t(d) }))
 
 function CreateForm({ onDone }: { onDone: () => void }) {
+  const t = useT()
   const create = useCreateUser()
   const form = useForm<z.infer<typeof createSchema>>({
     resolver: zodResolver(createSchema),
@@ -111,7 +117,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
       onSubmit={form.handleSubmit((values) =>
         create.mutate(values, {
           onSuccess: (user) => {
-            toast.success(`已开通账号 ${user.username}`)
+            toast.success(t("已开通账号 {username}", { username: user.username }))
             onDone()
           },
           onError: (e) => e instanceof ApiError && applyFieldErrors(e.fieldErrors, form.setError),
@@ -122,23 +128,23 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         <FieldGroup>
           <ErrorAlert error={create.error} />
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField control={form.control} name="fullName" label="姓名" required />
-            <TextField control={form.control} name="employeeId" label="工号" required placeholder="E20417" />
+            <TextField control={form.control} name="fullName" label={t("姓名")} required />
+            <TextField control={form.control} name="employeeId" label={t("工号")} required placeholder="E20417" />
           </div>
-          <SelectField control={form.control} name="department" label="所属部门" required options={departmentOptions} />
+          <SelectField control={form.control} name="department" label={t("所属部门")} required options={departmentOptions(t)} />
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField control={form.control} name="email" label="工作邮箱" type="email" required />
-            <TextField control={form.control} name="phone" label="联系电话" type="tel" required />
+            <TextField control={form.control} name="email" label={t("工作邮箱")} type="email" required />
+            <TextField control={form.control} name="phone" label={t("联系电话")} type="tel" required />
           </div>
           <FieldSeparator />
-          <TextField control={form.control} name="username" label="用户名" required autoComplete="off" />
+          <TextField control={form.control} name="username" label={t("用户名")} required autoComplete="off" />
           <PasswordField
             control={form.control}
             name="password"
-            label="初始密码"
+            label={t("初始密码")}
             required
             autoComplete="new-password"
-            description="用户首次登录后应自行修改"
+            description={t("用户首次登录后应自行修改")}
           />
           <FieldSeparator />
           <Controller
@@ -150,25 +156,27 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           />
         </FieldGroup>
       </Body>
-      <Footer pending={create.isPending} label="创建账号" onCancel={onDone} />
+      <Footer pending={create.isPending} label={t("创建账号")} onCancel={onDone} />
     </form>
   )
 }
 
 function ReadonlyIdentity({ user }: { user: User }) {
+  const t = useT()
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 rounded-lg bg-muted/60 p-4 text-sm">
-      <dt className="text-muted-foreground">用户名</dt>
+      <dt className="text-muted-foreground">{t("用户名")}</dt>
       <dd className="doc-number">{user.username}</dd>
-      <dt className="text-muted-foreground">工号</dt>
+      <dt className="text-muted-foreground">{t("工号")}</dt>
       <dd className="doc-number">{user.employeeId}</dd>
-      <dt className="text-muted-foreground">申请时间</dt>
+      <dt className="text-muted-foreground">{t("申请时间")}</dt>
       <dd className="tabular-nums">{formatDateTime(user.createdAt)}</dd>
     </dl>
   )
 }
 
 function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
+  const t = useT()
   const update = useUpdateUser()
   const form = useForm<z.infer<typeof editSchema>>({
     resolver: zodResolver(editSchema),
@@ -190,7 +198,7 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
           { id: user.id, ...values },
           {
             onSuccess: () => {
-              toast.success("用户信息已更新")
+              toast.success(t("用户信息已更新"))
               onDone()
             },
           }
@@ -201,11 +209,11 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
         <FieldGroup>
           <ErrorAlert error={update.error} />
           <ReadonlyIdentity user={user} />
-          <TextField control={form.control} name="fullName" label="姓名" required />
-          <SelectField control={form.control} name="department" label="所属部门" required options={departmentOptions} />
+          <TextField control={form.control} name="fullName" label={t("姓名")} required />
+          <SelectField control={form.control} name="department" label={t("所属部门")} required options={departmentOptions(t)} />
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField control={form.control} name="email" label="工作邮箱" type="email" required />
-            <TextField control={form.control} name="phone" label="联系电话" type="tel" required />
+            <TextField control={form.control} name="email" label={t("工作邮箱")} type="email" required />
+            <TextField control={form.control} name="phone" label={t("联系电话")} type="tel" required />
           </div>
           <FieldSeparator />
           <Controller
@@ -217,12 +225,13 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
           />
         </FieldGroup>
       </Body>
-      <Footer pending={update.isPending} label="保存" onCancel={onDone} />
+      <Footer pending={update.isPending} label={t("保存")} onCancel={onDone} />
     </form>
   )
 }
 
 function ApproveForm({ user, onDone }: { user: User; onDone: () => void }) {
+  const t = useT()
   const setStatus = useSetUserStatus()
   const form = useForm<z.infer<typeof approveSchema>>({
     resolver: zodResolver(approveSchema),
@@ -238,7 +247,7 @@ function ApproveForm({ user, onDone }: { user: User; onDone: () => void }) {
           { id: user.id, status: "active", roleIds },
           {
             onSuccess: () => {
-              toast.success(`已批准 ${user.fullName} 的账号申请`)
+              toast.success(t("已批准 {fullName} 的账号申请", { fullName: user.fullName }))
               onDone()
             },
           }
@@ -249,11 +258,11 @@ function ApproveForm({ user, onDone }: { user: User; onDone: () => void }) {
         <FieldGroup>
           <ErrorAlert error={setStatus.error} />
           <FieldSet>
-            <FieldLegend variant="label">申请人</FieldLegend>
+            <FieldLegend variant="label">{t("申请人")}</FieldLegend>
             <div className="flex flex-col gap-1">
               <span className="text-base font-semibold">{user.fullName}</span>
               <span className="text-sm text-muted-foreground">
-                {user.department} · {user.email} · <span className="tabular-nums">{user.phone}</span>
+                {t(user.department)} · {user.email} · <span className="tabular-nums">{user.phone}</span>
               </span>
             </div>
             <ReadonlyIdentity user={user} />
@@ -264,7 +273,7 @@ function ApproveForm({ user, onDone }: { user: User; onDone: () => void }) {
             name="roleIds"
             render={({ field, fieldState }) => (
               <RoleChecklist
-                legend="分配角色"
+                legend={t("分配角色")}
                 value={field.value}
                 onChange={field.onChange}
                 error={fieldState.error?.message}
@@ -273,7 +282,7 @@ function ApproveForm({ user, onDone }: { user: User; onDone: () => void }) {
           />
         </FieldGroup>
       </Body>
-      <Footer pending={setStatus.isPending} label="批准并开通" onCancel={onDone} />
+      <Footer pending={setStatus.isPending} label={t("批准并开通")} onCancel={onDone} />
     </form>
   )
 }

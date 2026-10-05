@@ -15,6 +15,7 @@ import { errorMessage } from "@/lib/api/client"
 import { formatDateTime } from "@/lib/format"
 import { useAuditLogs } from "@/features/audit/api"
 import type { AuditActorType } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 const PAGE_SIZE = 12
 
@@ -45,6 +46,7 @@ const ACTION_LABELS: Record<string, string> = {
 }
 
 export function AuditLogList() {
+  const t = useT()
   const [keyword, setKeyword] = useState("")
   const [page, setPage] = useState(1)
   const debouncedKeyword = useDebouncedValue(keyword.trim())
@@ -64,7 +66,7 @@ export function AuditLogList() {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title="审计日志" description="登录、审批、建档等写操作的记录，按时间倒序。" />
+      <PageHeader title={t("审计日志")} description={t("登录、审批、建档等写操作的记录，按时间倒序。")} />
 
       <div className="mb-4">
         <InputGroup className="sm:max-w-sm">
@@ -75,8 +77,8 @@ export function AuditLogList() {
             type="search"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            placeholder="操作人 / 动作 / 说明"
-            aria-label="搜索审计日志"
+            placeholder={t("操作人 / 动作 / 说明")}
+            aria-label={t("搜索审计日志")}
           />
         </InputGroup>
       </div>
@@ -91,25 +93,25 @@ export function AuditLogList() {
         ) : isError ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>无法加载审计日志</EmptyTitle>
+              <EmptyTitle>{t("无法加载审计日志")}</EmptyTitle>
               <EmptyDescription>{errorMessage(error)}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : !data?.items.length ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>{debouncedKeyword ? "没有符合条件的记录" : "还没有审计记录"}</EmptyTitle>
-              <EmptyDescription>{debouncedKeyword ? "试试其他关键词。" : "写操作发生后会出现在这里。"}</EmptyDescription>
+              <EmptyTitle>{debouncedKeyword ? t("没有符合条件的记录") : t("还没有审计记录")}</EmptyTitle>
+              <EmptyDescription>{debouncedKeyword ? t("试试其他关键词。") : t("写操作发生后会出现在这里。")}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <Table className={isPlaceholderData ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">时间</TableHead>
-                <TableHead>操作人</TableHead>
-                <TableHead>动作</TableHead>
-                <TableHead className="pr-4">说明</TableHead>
+                <TableHead className="pl-4">{t("时间")}</TableHead>
+                <TableHead>{t("操作人")}</TableHead>
+                <TableHead>{t("动作")}</TableHead>
+                <TableHead className="pr-4">{t("说明")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -119,11 +121,11 @@ export function AuditLogList() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span>{log.actorName}</span>
-                      <span className="text-xs text-muted-foreground">{ACTOR_LABELS[log.actorType]}</span>
+                      <span className="text-xs text-muted-foreground">{t(ACTOR_LABELS[log.actorType])}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{ACTION_LABELS[log.action] ?? log.action}</Badge>
+                    <Badge variant="outline">{ACTION_LABELS[log.action] ? t(ACTION_LABELS[log.action]) : log.action}</Badge>
                   </TableCell>
                   <TableCell className="pr-4">{log.detail}</TableCell>
                 </TableRow>
@@ -134,14 +136,14 @@ export function AuditLogList() {
       </div>
 
       {data && data.total > 0 && (
-        <nav aria-label="分页" className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <nav aria-label={t("分页")} className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
           <span className="tabular-nums">
-            共 {data.total} 条 · 第 {data.page} / {totalPages} 页
+            {t("共 {total} 条 · 第 {page} / {totalPages} 页", { total: data.total, page: data.page, totalPages })}
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
               <ChevronLeftIcon data-icon="inline-start" />
-              上一页
+              {t("上一页")}
             </Button>
             <Button
               variant="outline"
@@ -149,7 +151,7 @@ export function AuditLogList() {
               disabled={page >= totalPages}
               onClick={() => setPage((current) => current + 1)}
             >
-              下一页
+              {t("下一页")}
               <ChevronRightIcon data-icon="inline-end" />
             </Button>
           </div>

@@ -4,9 +4,12 @@ import { AgencyMark } from "@/components/brand"
 import { PortalFooter } from "@/components/portal/portal-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { appConfig } from "@/lib/config"
+import { getT } from "@/lib/i18n/server"
 
-export default function PortalAuthLayout({ children }: { children: React.ReactNode }) {
+export default async function PortalAuthLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT()
   return (
     <div className="flex min-h-svh flex-col bg-muted/30">
       <header className="border-b bg-background">
@@ -17,13 +20,16 @@ export default function PortalAuthLayout({ children }: { children: React.ReactNo
           >
             <AgencyMark className="text-primary" />
             <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-sm font-semibold">{appConfig.agencyName}</span>
-              <span className="truncate text-[0.7rem] text-muted-foreground">申请人服务门户</span>
+              <span className="truncate text-sm font-semibold">{t(appConfig.agencyName)}</span>
+              <span className="truncate text-[0.7rem] text-muted-foreground">{t("申请人服务门户")}</span>
             </span>
           </Link>
-          <Button asChild variant="ghost" size="sm" className="ml-auto">
-            <Link href="/login">工作人员登录</Link>
-          </Button>
+          <div className="ml-auto flex items-center gap-1">
+            <LocaleSwitcher />
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/login">{t("工作人员登录")}</Link>
+            </Button>
+          </div>
         </div>
       </header>
 

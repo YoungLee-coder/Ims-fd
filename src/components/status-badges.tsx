@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import {
   APPLICANT_STATUS_LABELS,
@@ -6,6 +8,7 @@ import {
   VERIFICATION_LABELS,
 } from "@/lib/constants"
 import { getValidity } from "@/lib/format"
+import { useT } from "@/lib/i18n/client"
 import type {
   ApplicantStatus,
   ApplicationStatus,
@@ -46,31 +49,36 @@ const APPLICATION_VARIANT: Record<ApplicationStatus, BadgeVariant> = {
 }
 
 export function ApplicantStatusBadge({ status }: { status: ApplicantStatus }) {
-  return <Badge variant={APPLICANT_VARIANT[status]}>{APPLICANT_STATUS_LABELS[status]}</Badge>
+  const t = useT()
+  return <Badge variant={APPLICANT_VARIANT[status]}>{t(APPLICANT_STATUS_LABELS[status])}</Badge>
 }
 
 export function UserStatusBadge({ status }: { status: UserStatus }) {
-  return <Badge variant={USER_VARIANT[status]}>{USER_STATUS_LABELS[status]}</Badge>
+  const t = useT()
+  return <Badge variant={USER_VARIANT[status]}>{t(USER_STATUS_LABELS[status])}</Badge>
 }
 
 export function VerificationBadge({ status }: { status: VerificationStatus }) {
-  return <Badge variant={VERIFICATION_VARIANT[status]}>{VERIFICATION_LABELS[status]}</Badge>
+  const t = useT()
+  return <Badge variant={VERIFICATION_VARIANT[status]}>{t(VERIFICATION_LABELS[status])}</Badge>
 }
 
 export function ApplicationStatusBadge({ status }: { status: ApplicationStatus }) {
-  return <Badge variant={APPLICATION_VARIANT[status]}>{APPLICATION_STATUS_LABELS[status]}</Badge>
+  const t = useT()
+  return <Badge variant={APPLICATION_VARIANT[status]}>{t(APPLICATION_STATUS_LABELS[status])}</Badge>
 }
 
 export function ValidityBadge({ expiryDate }: { expiryDate: string | null }) {
+  const t = useT()
   const { state, daysLeft } = getValidity(expiryDate)
   switch (state) {
     case "permanent":
-      return <Badge variant="secondary">长期有效</Badge>
+      return <Badge variant="secondary">{t("长期有效")}</Badge>
     case "expired":
-      return <Badge variant="destructive">已过期 {Math.abs(daysLeft!)} 天</Badge>
+      return <Badge variant="destructive">{t("已过期 {days} 天", { days: Math.abs(daysLeft!) })}</Badge>
     case "expiring":
-      return <Badge variant="warning">{daysLeft === 0 ? "今日到期" : `${daysLeft} 天后到期`}</Badge>
+      return <Badge variant="warning">{daysLeft === 0 ? t("今日到期") : t("{days} 天后到期", { days: daysLeft! })}</Badge>
     default:
-      return <Badge variant="success">有效</Badge>
+      return <Badge variant="success">{t("有效")}</Badge>
   }
 }

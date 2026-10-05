@@ -15,8 +15,10 @@ import { ApiError, errorMessage } from "@/lib/api/client"
 import { DEPARTMENTS } from "@/lib/constants"
 import { authApi } from "@/features/auth/api"
 import { registerSchema, type RegisterValues } from "@/features/auth/schemas"
+import { useT } from "@/lib/i18n/client"
 
 export function RegisterForm() {
+  const t = useT()
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -46,23 +48,23 @@ export function RegisterForm() {
           <MailCheckIcon className="size-5" />
         </span>
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold">申请已提交</h2>
+          <h2 className="text-2xl font-semibold">{t("申请已提交")}</h2>
           <p className="leading-relaxed text-muted-foreground">
-            系统管理员审核通过并分配角色后，账号即可登录。审核结果将发送至 {user.email}。
+            {t("系统管理员审核通过并分配角色后，账号即可登录。审核结果将发送至 {email}。", { email: user.email })}
           </p>
         </div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-y py-4 text-sm">
-          <dt className="text-muted-foreground">姓名</dt>
+          <dt className="text-muted-foreground">{t("姓名")}</dt>
           <dd>{user.fullName}</dd>
-          <dt className="text-muted-foreground">工号</dt>
+          <dt className="text-muted-foreground">{t("工号")}</dt>
           <dd className="doc-number">{user.employeeId}</dd>
-          <dt className="text-muted-foreground">用户名</dt>
+          <dt className="text-muted-foreground">{t("用户名")}</dt>
           <dd className="doc-number">{user.username}</dd>
-          <dt className="text-muted-foreground">部门</dt>
-          <dd>{user.department}</dd>
+          <dt className="text-muted-foreground">{t("部门")}</dt>
+          <dd>{t(user.department)}</dd>
         </dl>
         <Button asChild variant="outline" className="self-start">
-          <Link href="/login">返回登录</Link>
+          <Link href="/login">{t("返回登录")}</Link>
         </Button>
       </div>
     )
@@ -73,63 +75,63 @@ export function RegisterForm() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-2xl font-semibold">申请开通账号</h2>
-        <p className="text-sm text-muted-foreground">提交后由系统管理员核实身份并分配角色。</p>
+        <h2 className="text-2xl font-semibold">{t("申请开通账号")}</h2>
+        <p className="text-sm text-muted-foreground">{t("提交后由系统管理员核实身份并分配角色。")}</p>
       </div>
 
       <form noValidate onSubmit={form.handleSubmit((values) => register.mutate(values))} className="flex flex-col gap-8">
         {serverError && (
           <Alert variant="destructive">
             <CircleAlertIcon />
-            <AlertTitle>提交失败</AlertTitle>
+            <AlertTitle>{t("提交失败")}</AlertTitle>
             <AlertDescription>{errorMessage(register.error)}</AlertDescription>
           </Alert>
         )}
 
         <FieldSet>
-          <FieldLegend>身份信息</FieldLegend>
+          <FieldLegend>{t("身份信息")}</FieldLegend>
           <FieldGroup>
             <div className="grid gap-5 sm:grid-cols-2">
-              <TextField control={form.control} name="fullName" label="姓名" required autoComplete="name" />
-              <TextField control={form.control} name="employeeId" label="工号" required placeholder="E20417" />
+              <TextField control={form.control} name="fullName" label={t("姓名")} required autoComplete="name" />
+              <TextField control={form.control} name="employeeId" label={t("工号")} required placeholder="E20417" />
             </div>
             <SelectField
               control={form.control}
               name="department"
-              label="所属部门"
+              label={t("所属部门")}
               required
-              options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
+              options={DEPARTMENTS.map((d) => ({ value: d, label: t(d) }))}
             />
             <div className="grid gap-5 sm:grid-cols-2">
-              <TextField control={form.control} name="email" label="工作邮箱" type="email" required autoComplete="email" />
-              <TextField control={form.control} name="phone" label="联系电话" type="tel" required autoComplete="tel" />
+              <TextField control={form.control} name="email" label={t("工作邮箱")} type="email" required autoComplete="email" />
+              <TextField control={form.control} name="phone" label={t("联系电话")} type="tel" required autoComplete="tel" />
             </div>
           </FieldGroup>
         </FieldSet>
 
         <FieldSet>
-          <FieldLegend>登录凭据</FieldLegend>
+          <FieldLegend>{t("登录凭据")}</FieldLegend>
           <FieldGroup>
             <TextField
               control={form.control}
               name="username"
-              label="用户名"
+              label={t("用户名")}
               required
               autoComplete="username"
-              description="建议使用 姓.名 的拼音，例如 zhou.anlan"
+              description={t("建议使用 姓.名 的拼音，例如 zhou.anlan")}
             />
             <PasswordField
               control={form.control}
               name="password"
-              label="密码"
+              label={t("密码")}
               required
               autoComplete="new-password"
-              description="至少 10 位，包含大小写字母和数字"
+              description={t("至少 10 位，包含大小写字母和数字")}
             />
             <PasswordField
               control={form.control}
               name="confirmPassword"
-              label="确认密码"
+              label={t("确认密码")}
               required
               autoComplete="new-password"
             />
@@ -138,14 +140,14 @@ export function RegisterForm() {
 
         <Button type="submit" size="lg" disabled={register.isPending}>
           {register.isPending && <Spinner data-icon="inline-start" />}
-          提交申请
+          {t("提交申请")}
         </Button>
       </form>
 
       <p className="text-sm text-muted-foreground">
-        已有账号？
+        {t("已有账号？")}
         <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
-          返回登录
+          {t("返回登录")}
         </Link>
       </p>
     </div>

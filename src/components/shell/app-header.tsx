@@ -16,6 +16,8 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useApplicant } from "@/features/applicants/api"
 import { useStaffApplication } from "@/features/applications/api"
+import { LocaleSwitcher } from "@/components/locale-switcher"
+import { useT } from "@/lib/i18n/client"
 import { NotificationBell } from "@/features/notifications/notification-bell"
 
 const LABELS: Record<string, string> = {
@@ -31,16 +33,19 @@ const LABELS: Record<string, string> = {
 }
 
 function ApplicantCrumb({ id }: { id: string }) {
+  const t = useT()
   const { data } = useApplicant(id)
-  return <span className="doc-number">{data?.fileNo ?? "档案详情"}</span>
+  return <span className="doc-number">{data?.fileNo ?? t("档案详情")}</span>
 }
 
 function ApplicationCrumb({ id }: { id: string }) {
+  const t = useT()
   const { data } = useStaffApplication(id)
-  return <span className="doc-number">{data?.applicationNo ?? "申请详情"}</span>
+  return <span className="doc-number">{data?.applicationNo ?? t("申请详情")}</span>
 }
 
 export function AppHeader() {
+  const t = useT()
   const pathname = usePathname()
   const segments = pathname.split("/").filter(Boolean)
 
@@ -53,7 +58,7 @@ export function AppHeader() {
     ) : isApplicationId ? (
       <ApplicationCrumb id={segment} />
     ) : (
-      (LABELS[segment] ?? segment)
+      (LABELS[segment] ? t(LABELS[segment]) : segment)
     )
     // "系统管理" 仅是分组，没有对应页面
     const linkable = segment !== "admin"
@@ -84,6 +89,7 @@ export function AppHeader() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+      <LocaleSwitcher />
       <NotificationBell realm="staff" />
     </header>
   )

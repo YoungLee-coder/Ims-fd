@@ -3,8 +3,12 @@ import { Suspense } from "react"
 
 import { ApplicantDetail } from "@/features/applicants/applicant-detail"
 import { RequirePermission } from "@/features/auth/require-permission"
+import { getT } from "@/lib/i18n/server"
 
-export const metadata: Metadata = { title: "档案详情" }
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return { title: t("档案详情") }
+}
 
 export default async function ApplicantPage({ params }: PageProps<"/applicants/[id]">) {
   const { id } = await params

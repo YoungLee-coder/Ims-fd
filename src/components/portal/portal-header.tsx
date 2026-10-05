@@ -15,6 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { LocaleSwitcher } from "@/components/locale-switcher"
+import { useT } from "@/lib/i18n/client"
 import { appConfig } from "@/lib/config"
 import { NotificationBell } from "@/features/notifications/notification-bell"
 import { initials } from "@/lib/format"
@@ -54,6 +56,7 @@ export function PortalHeader({
   account: ApplicantAccount | null
   onLogout?: () => Promise<void>
 }) {
+  const t = useT()
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
@@ -63,25 +66,26 @@ export function PortalHeader({
         >
           <AgencyMark className="text-primary" />
           <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-semibold">{appConfig.agencyName}</span>
-            <span className="truncate text-[0.7rem] text-muted-foreground">申请人服务门户</span>
+            <span className="truncate text-sm font-semibold">{t(appConfig.agencyName)}</span>
+            <span className="truncate text-[0.7rem] text-muted-foreground">{t("申请人服务门户")}</span>
           </span>
         </Link>
 
         {account && (
-          <nav aria-label="门户导航" className="ml-2 hidden items-center gap-1 sm:flex">
-            <PortalLink href="/portal/applications">我的申请</PortalLink>
+          <nav aria-label={t("门户导航")} className="ml-2 hidden items-center gap-1 sm:flex">
+            <PortalLink href="/portal/applications">{t("我的申请")}</PortalLink>
           </nav>
         )}
 
         <div className="ml-auto flex items-center gap-2">
+          <LocaleSwitcher />
           {account ? (
             <>
               <NotificationBell realm="portal" />
               <Button asChild size="sm" className="hidden sm:inline-flex">
                 <Link href="/portal/applications/new">
                   <FilePlusIcon data-icon="inline-start" />
-                  新建申请
+                  {t("新建申请")}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -104,14 +108,14 @@ export function PortalHeader({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => void onLogout?.()}>
                     <LogOutIcon />
-                    退出登录
+                    {t("退出登录")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <Button asChild variant="outline" size="sm">
-              <Link href="/portal/login">登录</Link>
+              <Link href="/portal/login">{t("登录")}</Link>
             </Button>
           )}
         </div>
@@ -121,14 +125,15 @@ export function PortalHeader({
 }
 
 export function PortalFooter() {
+  const t = useT()
   return (
     <footer className="border-t bg-background">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>本门户仅供申请人本人办理出入境与居留业务，请如实填写并上传真实材料。</p>
+        <p>{t("本门户仅供申请人本人办理出入境与居留业务，请如实填写并上传真实材料。")}</p>
         <p className="shrink-0">
-          工作人员请
+          {t("工作人员请")}
           <Link href="/login" className="ml-1 font-medium text-primary underline-offset-4 hover:underline">
-            从内部系统登录
+            {t("从内部系统登录")}
           </Link>
         </p>
       </div>

@@ -14,21 +14,23 @@ import { APPLICATION_TYPE_LABELS } from "@/lib/constants"
 import { formatDateTime } from "@/lib/format"
 import { useApplications } from "@/features/portal/api"
 import type { Application } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 export function ApplicationList() {
+  const t = useT()
   const { data, isPending, isError, error } = useApplications()
   const supplements = data?.filter((a) => a.status === "supplement_required") ?? []
 
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="我的申请"
-        description="查看每份申请的办理进度。草稿可继续填写，已提交的申请在受理前可以撤回。"
+        title={t("我的申请")}
+        description={t("查看每份申请的办理进度。草稿可继续填写，已提交的申请在受理前可以撤回。")}
         actions={
           <Button asChild>
             <Link href="/portal/applications/new">
               <FilePlusIcon data-icon="inline-start" />
-              新建申请
+              {t("新建申请")}
             </Link>
           </Button>
         }
@@ -37,9 +39,9 @@ export function ApplicationList() {
       {supplements.length > 0 && (
         <Alert className="mb-6">
           <TriangleAlertIcon className="text-warning" />
-          <AlertTitle>有 {supplements.length} 份申请需要补交材料</AlertTitle>
+          <AlertTitle>{t("有 {count} 份申请需要补交材料", { count: supplements.length })}</AlertTitle>
           <AlertDescription>
-            请查看申请详情中的受理意见，按要求补齐材料后重新提交，以免超过补件期限。
+            {t("请查看申请详情中的受理意见，按要求补齐材料后重新提交，以免超过补件期限。")}
           </AlertDescription>
         </Alert>
       )}
@@ -47,12 +49,12 @@ export function ApplicationList() {
       {isError ? (
         <Empty className="rounded-xl border bg-card py-16">
           <EmptyHeader>
-            <EmptyTitle>加载失败</EmptyTitle>
+            <EmptyTitle>{t("加载失败")}</EmptyTitle>
             <EmptyDescription>{errorMessage(error)}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : isPending ? (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label="正在加载申请列表">
+        <div className="flex flex-col gap-3" aria-busy="true" aria-label={t("正在加载申请列表")}>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-xl" />
           ))}
@@ -63,14 +65,14 @@ export function ApplicationList() {
             <EmptyMedia variant="icon">
               <FileTextIcon />
             </EmptyMedia>
-            <EmptyTitle>还没有提交过申请</EmptyTitle>
+            <EmptyTitle>{t("还没有提交过申请")}</EmptyTitle>
             <EmptyDescription>
-              准备好护照等材料后，点击“新建申请”开始填写。填写过程中可以随时保存为草稿。
+              {t("准备好护照等材料后，点击“新建申请”开始填写。填写过程中可以随时保存为草稿。")}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button asChild>
-              <Link href="/portal/applications/new">新建申请</Link>
+              <Link href="/portal/applications/new">{t("新建申请")}</Link>
             </Button>
           </EmptyContent>
         </Empty>
@@ -88,6 +90,7 @@ export function ApplicationList() {
 }
 
 function ApplicationCard({ application }: { application: Application }) {
+  const t = useT()
   const { id, applicationNo, type, status, attachments, submittedAt, updatedAt, fileNo } = application
   const isDraft = status === "draft"
 
@@ -101,27 +104,27 @@ function ApplicationCard({ application }: { application: Application }) {
           <ApplicationStatusBadge status={status} />
           <span className="font-medium">{APPLICATION_TYPE_LABELS[type]}</span>
           {applicationNo && <span className="doc-number text-xs text-muted-foreground">{applicationNo}</span>}
-          {isDraft && <span className="text-xs text-muted-foreground">尚未提交</span>}
+          {isDraft && <span className="text-xs text-muted-foreground">{t("尚未提交")}</span>}
         </div>
 
         <dl className="flex flex-wrap gap-x-8 gap-y-1 text-xs text-muted-foreground">
           <div className="flex gap-1.5">
-            <dt>材料</dt>
-            <dd className="tabular-nums">{attachments.length} 份</dd>
+            <dt>{t("材料")}</dt>
+            <dd className="tabular-nums">{t("{count} 份", { count: attachments.length })}</dd>
           </div>
           {submittedAt && (
             <div className="flex gap-1.5">
-              <dt>提交时间</dt>
+              <dt>{t("提交时间")}</dt>
               <dd className="tabular-nums">{formatDateTime(submittedAt)}</dd>
             </div>
           )}
           <div className="flex gap-1.5">
-            <dt>最近更新</dt>
+            <dt>{t("最近更新")}</dt>
             <dd className="tabular-nums">{formatDateTime(updatedAt)}</dd>
           </div>
           {fileNo && (
             <div className="flex gap-1.5">
-              <dt>档案编号</dt>
+              <dt>{t("档案编号")}</dt>
               <dd className="doc-number">{fileNo}</dd>
             </div>
           )}
@@ -129,7 +132,7 @@ function ApplicationCard({ application }: { application: Application }) {
 
         {status === "supplement_required" && application.reviewNote && (
           <p className="line-clamp-2 rounded-md bg-warning/12 px-3 py-2 text-xs text-foreground">
-            受理意见：{application.reviewNote}
+            {t("受理意见：{reviewNote}", { reviewNote: application.reviewNote })}
           </p>
         )}
       </div>

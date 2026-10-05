@@ -29,11 +29,14 @@ import { formatDate, formatRelative } from "@/lib/format"
 import { Can } from "@/features/auth/require-permission"
 import { useApplicants } from "@/features/applicants/api"
 import type { ApplicantStatus } from "@/types"
+import { useLocale, useT } from "@/lib/i18n/client"
 
 const PAGE_SIZE = 8
 const ALL = "all"
 
 export function ApplicantList() {
+  const t = useT()
+  const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -73,14 +76,14 @@ export function ApplicantList() {
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="申请人档案"
-        description="按姓名、档案编号或证件号码检索。点击姓名查看个人信息与证件。"
+        title={t("申请人档案")}
+        description={t("按姓名、档案编号或证件号码检索。点击姓名查看个人信息与证件。")}
         actions={
           <Can anyOf="applicant.create">
             <Button asChild>
               <Link href="/applicants/new">
                 <FilePlusIcon data-icon="inline-start" />
-                新建档案
+                {t("新建档案")}
               </Link>
             </Button>
           </Can>
@@ -96,17 +99,17 @@ export function ApplicantList() {
             type="search"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="姓名 / 档案编号 / 证件号码"
-            aria-label="搜索档案"
+            placeholder={t("姓名 / 档案编号 / 证件号码")}
+            aria-label={t("搜索档案")}
           />
         </InputGroup>
         <Select value={status ?? ALL} onValueChange={(v) => setParams({ status: v === ALL ? undefined : v })}>
-          <SelectTrigger className="sm:w-36" aria-label="档案状态">
+          <SelectTrigger className="sm:w-36" aria-label={t("档案状态")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value={ALL}>全部状态</SelectItem>
+              <SelectItem value={ALL}>{t("全部状态")}</SelectItem>
             </SelectGroup>
             <SelectSeparator />
             <SelectGroup>
@@ -122,18 +125,18 @@ export function ApplicantList() {
           value={nationality ?? ALL}
           onValueChange={(v) => setParams({ nationality: v === ALL ? undefined : v })}
         >
-          <SelectTrigger className="sm:w-40" aria-label="国籍">
+          <SelectTrigger className="sm:w-40" aria-label={t("国籍")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value={ALL}>全部国籍</SelectItem>
+              <SelectItem value={ALL}>{t("全部国籍")}</SelectItem>
             </SelectGroup>
             <SelectSeparator />
             <SelectGroup>
               {COUNTRIES.map((c) => (
                 <SelectItem key={c.code} value={c.code}>
-                  {c.name}
+                  {t(c.name)}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -147,7 +150,7 @@ export function ApplicantList() {
               router.replace(pathname, { scroll: false })
             }}
           >
-            清除筛选
+            {t("清除筛选")}
           </Button>
         )}
       </div>
@@ -156,7 +159,7 @@ export function ApplicantList() {
         {isError ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>加载失败</EmptyTitle>
+              <EmptyTitle>{t("加载失败")}</EmptyTitle>
               <EmptyDescription>{errorMessage(error)}</EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -169,16 +172,16 @@ export function ApplicantList() {
         ) : data.items.length === 0 ? (
           <Empty className="py-12">
             <EmptyHeader>
-              <EmptyTitle>{filtered ? "没有符合条件的档案" : "尚未建立任何档案"}</EmptyTitle>
+              <EmptyTitle>{filtered ? t("没有符合条件的档案") : t("尚未建立任何档案")}</EmptyTitle>
               <EmptyDescription>
-                {filtered ? "调整关键词或筛选条件后重试。" : "新申请人首次办理业务时，在此建立档案。"}
+                {filtered ? t("调整关键词或筛选条件后重试。") : t("新申请人首次办理业务时，在此建立档案。")}
               </EmptyDescription>
             </EmptyHeader>
             {!filtered && (
               <Can anyOf="applicant.create">
                 <EmptyContent>
                   <Button asChild>
-                    <Link href="/applicants/new">新建档案</Link>
+                    <Link href="/applicants/new">{t("新建档案")}</Link>
                   </Button>
                 </EmptyContent>
               </Can>
@@ -188,14 +191,14 @@ export function ApplicantList() {
           <Table className={isPlaceholderData ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">姓名</TableHead>
-                <TableHead>档案编号</TableHead>
-                <TableHead>性别</TableHead>
-                <TableHead>出生日期</TableHead>
-                <TableHead>国籍</TableHead>
-                <TableHead>证件</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead className="pr-4 text-right">最近更新</TableHead>
+                <TableHead className="pl-4">{t("姓名")}</TableHead>
+                <TableHead>{t("档案编号")}</TableHead>
+                <TableHead>{t("性别")}</TableHead>
+                <TableHead>{t("出生日期")}</TableHead>
+                <TableHead>{t("国籍")}</TableHead>
+                <TableHead>{t("证件")}</TableHead>
+                <TableHead>{t("状态")}</TableHead>
+                <TableHead className="pr-4 text-right">{t("最近更新")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -219,7 +222,7 @@ export function ApplicantList() {
                   <TableCell className="tabular-nums">{formatDate(a.dateOfBirth)}</TableCell>
                   <TableCell>
                     <span className="doc-number mr-1.5 text-xs text-muted-foreground">{a.nationality}</span>
-                    {countryName(a.nationality)}
+                    {countryName(a.nationality, t)}
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-1.5 tabular-nums">
@@ -229,10 +232,10 @@ export function ApplicantList() {
                           <TooltipTrigger asChild>
                             <TriangleAlertIcon
                               className="relative z-[1] size-3.5 text-warning"
-                              aria-label={`${a.attentionCount} 份证件即将到期或已过期`}
+                              aria-label={t("{attentionCount} 份证件即将到期或已过期", { attentionCount: a.attentionCount })}
                             />
                           </TooltipTrigger>
-                          <TooltipContent>{a.attentionCount} 份证件即将到期或已过期</TooltipContent>
+                          <TooltipContent>{t("{attentionCount} 份证件即将到期或已过期", { attentionCount: a.attentionCount })}</TooltipContent>
                         </Tooltip>
                       )}
                     </span>
@@ -240,7 +243,7 @@ export function ApplicantList() {
                   <TableCell>
                     <ApplicantStatusBadge status={a.status} />
                   </TableCell>
-                  <TableCell className="pr-4 text-right text-muted-foreground">{formatRelative(a.updatedAt)}</TableCell>
+                  <TableCell className="pr-4 text-right text-muted-foreground">{formatRelative(a.updatedAt, locale)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -249,9 +252,9 @@ export function ApplicantList() {
       </div>
 
       {data && data.total > 0 && (
-        <nav aria-label="分页" className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <nav aria-label={t("分页")} className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground">
           <span className="tabular-nums">
-            共 {data.total} 条 · 第 {data.page} / {totalPages} 页
+            {t("共 {total} 条 · 第 {page} / {totalPages} 页", { total: data.total, page: data.page, totalPages })}
           </span>
           <div className="flex gap-2">
             <Button
@@ -261,7 +264,7 @@ export function ApplicantList() {
               onClick={() => setParams({ page: String(page - 1) })}
             >
               <ChevronLeftIcon data-icon="inline-start" />
-              上一页
+              {t("上一页")}
             </Button>
             <Button
               variant="outline"
@@ -269,7 +272,7 @@ export function ApplicantList() {
               disabled={page >= totalPages}
               onClick={() => setParams({ page: String(page + 1) })}
             >
-              下一页
+              {t("下一页")}
               <ChevronRightIcon data-icon="inline-end" />
             </Button>
           </div>
