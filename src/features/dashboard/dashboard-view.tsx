@@ -16,6 +16,8 @@ import { useAuth } from "@/features/auth/auth-provider"
 import { Can } from "@/features/auth/require-permission"
 import { useDashboardSummary } from "@/features/dashboard/api"
 import { useReports } from "@/features/reports/api"
+import { useT } from "@/lib/i18n/client"
+import type { TFunction } from "@/lib/i18n/translate"
 
 function ReportFigure({ label, value }: { label: string; value?: string }) {
   return (
@@ -26,37 +28,38 @@ function ReportFigure({ label, value }: { label: string; value?: string }) {
   )
 }
 
-function greeting() {
+function greeting(t: TFunction) {
   const h = new Date().getHours()
-  if (h < 6) return "夜间值班辛苦了"
-  if (h < 12) return "早上好"
-  if (h < 18) return "下午好"
-  return "晚上好"
+  if (h < 6) return t("夜间值班辛苦了")
+  if (h < 12) return t("早上好")
+  if (h < 18) return t("下午好")
+  return t("晚上好")
 }
 
 export function DashboardView() {
+  const t = useT()
   const { user, can } = useAuth()
   const { data, isPending } = useDashboardSummary()
   const reports = useReports(can("applicant.read"))
 
   const stats = [
     {
-      label: "待受理申请",
+      label: t("待受理申请"),
       value: reports.isPending ? undefined : (reports.data?.byStatus.submitted ?? 0),
       href: "/applications?status=submitted",
       show: can("applicant.read"),
     },
-    { label: "在档申请人", value: data?.applicantTotal, href: "/applicants", show: can("applicant.read") },
+    { label: t("在档申请人"), value: data?.applicantTotal, href: "/applicants", show: can("applicant.read") },
     {
-      label: "审查中档案",
+      label: t("审查中档案"),
       value: data?.underReview,
       href: "/applicants?status=under_review",
       show: can("applicant.read"),
     },
-    { label: "待核验证件", value: data?.pendingVerification, show: can("document.read") },
-    { label: "即将到期或已过期", value: data?.expiringSoon, show: can("document.read"), tone: "warning" as const },
+    { label: t("待核验证件"), value: data?.pendingVerification, show: can("document.read") },
+    { label: t("即将到期或已过期"), value: data?.expiringSoon, show: can("document.read"), tone: "warning" as const },
     {
-      label: "待审核账号",
+      label: t("待审核账号"),
       value: data?.pendingAccounts,
       href: "/admin/users?status=pending",
       show: can(["user.read", "user.manage"]),
@@ -66,14 +69,17 @@ export function DashboardView() {
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
-        title={`${greeting()}，${user.fullName}`}
-        description={`${user.department} · ${user.roles.map((r) => r.name).join("、") || "未分配角色"}`}
+        title={t("{greeting}，{name}", { greeting: greeting(t), name: user.fullName })}
+        description={t("{department} · {roles}", {
+          department: t(user.department),
+          roles: user.roles.map((r) => t(r.name)).join(t("、")) || t("未分配角色"),
+        })}
         actions={
           <Can anyOf="applicant.create">
             <Button asChild>
               <Link href="/applicants/new">
                 <FilePlusIcon data-icon="inline-start" />
-                新建档案
+                {t("新建档案")}
               </Link>
             </Button>
           </Can>
@@ -82,7 +88,7 @@ export function DashboardView() {
       />
 
       {stats.length > 0 && (
-        <section aria-label="业务概况">
+        <section aria-label={t("业务概况")}>
           <div className="grid grid-cols-2 overflow-hidden rounded-lg border bg-card sm:grid-cols-3 xl:grid-cols-6">
             {stats.map((stat) => {
               const content = (
@@ -126,26 +132,26 @@ export function DashboardView() {
           <div className="flex items-end justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 id="reports-title" className="text-lg font-semibold">
-                申请办理
+                {t("申请办理")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                通过率按已办结申请计算，平均处理天数从提交到通过或驳回。
+                {t("通过率按已办结申请计算，平均处理天数从提交到通过或驳回。")}
               </p>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/applications">
-                前往受理
+                {t("前往受理")}
                 <ArrowRightIcon data-icon="inline-end" />
               </Link>
             </Button>
           </div>
           <div className="grid grid-cols-1 overflow-hidden rounded-lg border bg-card sm:grid-cols-3">
             <ReportFigure
-              label="申请总量"
+              label={t("申请总量")}
               value={reports.isPending ? undefined : String(reports.data?.applicationTotal ?? 0)}
             />
             <ReportFigure
-              label="通过率"
+              label={t("通过率")}
               value={
                 reports.isPending
                   ? undefined
@@ -155,7 +161,7 @@ export function DashboardView() {
               }
             />
             <ReportFigure
-              label="平均处理天数"
+              label={t("平均处理天数")}
               value={
                 reports.isPending
                   ? undefined
@@ -173,9 +179,9 @@ export function DashboardView() {
           <div className="flex items-end justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 id="expiring-title" className="text-lg font-semibold">
-                证件有效期提醒
+                {t("证件有效期提醒")}
               </h2>
-              <p className="text-sm text-muted-foreground">180 天内到期或已过期的证件，按剩余天数排序。</p>
+              <p className="text-sm text-muted-foreground">{t("180 天内到期或已过期的证件，按剩余天数排序。")}</p>
             </div>
           </div>
 
@@ -189,21 +195,21 @@ export function DashboardView() {
             ) : !data?.expiringDocuments.length ? (
               <Empty className="py-10">
                 <EmptyHeader>
-                  <EmptyTitle>暂无需要关注的证件</EmptyTitle>
-                  <EmptyDescription>所有在档证件的剩余有效期均超过 180 天。</EmptyDescription>
+                  <EmptyTitle>{t("暂无需要关注的证件")}</EmptyTitle>
+                  <EmptyDescription>{t("所有在档证件的剩余有效期均超过 180 天。")}</EmptyDescription>
                 </EmptyHeader>
               </Empty>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="pl-4">申请人</TableHead>
-                    <TableHead>证件</TableHead>
-                    <TableHead>号码</TableHead>
-                    <TableHead>到期日</TableHead>
-                    <TableHead>状态</TableHead>
+                    <TableHead className="pl-4">{t("申请人")}</TableHead>
+                    <TableHead>{t("证件")}</TableHead>
+                    <TableHead>{t("号码")}</TableHead>
+                    <TableHead>{t("到期日")}</TableHead>
+                    <TableHead>{t("状态")}</TableHead>
                     <TableHead className="w-10 pr-4">
-                      <span className="sr-only">操作</span>
+                      <span className="sr-only">{t("操作")}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -224,7 +230,7 @@ export function DashboardView() {
                       </TableCell>
                       <TableCell className="pr-4">
                         <Button variant="ghost" size="icon-sm" asChild>
-                          <Link href={`/applicants/${doc.applicantId}?tab=documents`} aria-label={`查看 ${doc.applicantName} 的证件`}>
+                          <Link href={`/applicants/${doc.applicantId}?tab=documents`} aria-label={t("查看 {applicantName} 的证件", { applicantName: doc.applicantName })}>
                             <ArrowRightIcon />
                           </Link>
                         </Button>

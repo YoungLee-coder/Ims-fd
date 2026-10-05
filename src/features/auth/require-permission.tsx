@@ -6,21 +6,23 @@ import { ShieldXIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useAuth } from "@/features/auth/auth-provider"
+import { useT } from "@/lib/i18n/client"
 import type { PermissionCode } from "@/types"
 
 export function Forbidden() {
+  const t = useT()
   return (
     <Empty className="min-h-[60vh]">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <ShieldXIcon />
         </EmptyMedia>
-        <EmptyTitle>没有访问权限</EmptyTitle>
-        <EmptyDescription>当前账号的角色未包含此页面所需权限。如需开通，请联系系统管理员。</EmptyDescription>
+        <EmptyTitle>{t("没有访问权限")}</EmptyTitle>
+        <EmptyDescription>{t("当前账号的角色未包含此页面所需权限。如需开通，请联系系统管理员。")}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
         <Button variant="outline" asChild>
-          <Link href="/dashboard">返回工作台</Link>
+          <Link href="/dashboard">{t("返回工作台")}</Link>
         </Button>
       </EmptyContent>
     </Empty>

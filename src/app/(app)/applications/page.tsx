@@ -3,8 +3,12 @@ import { Suspense } from "react"
 
 import { ApplicationInbox } from "@/features/applications/application-inbox"
 import { RequirePermission } from "@/features/auth/require-permission"
+import { getT } from "@/lib/i18n/server"
 
-export const metadata: Metadata = { title: "申请受理" }
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return { title: t("申请受理") }
+}
 
 export default function ApplicationsPage() {
   return (

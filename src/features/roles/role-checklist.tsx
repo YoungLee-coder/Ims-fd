@@ -6,24 +6,26 @@ import { Field, FieldContent, FieldDescription, FieldError, FieldLabel, FieldLeg
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRoles } from "@/features/roles/api"
 import type { ID } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 export function RoleChecklist({
   value,
   onChange,
   error,
-  legend = "角色",
+  legend,
 }: {
   value: ID[]
   onChange: (value: ID[]) => void
   error?: string
   legend?: string
 }) {
+  const t = useT()
   const { data: roles, isPending } = useRoles()
 
   return (
     <FieldSet data-invalid={!!error}>
-      <FieldLegend variant="label">{legend}</FieldLegend>
-      <FieldDescription>用户的权限为所选角色权限的并集。</FieldDescription>
+      <FieldLegend variant="label">{legend ?? t("角色")}</FieldLegend>
+      <FieldDescription>{t("用户的权限为所选角色权限的并集。")}</FieldDescription>
       {isPending ? (
         <div className="flex flex-col gap-2">
           <Skeleton className="h-14 w-full" />
@@ -45,10 +47,10 @@ export function RoleChecklist({
                   />
                   <FieldContent>
                     <span className="flex items-center gap-2 font-medium">
-                      {role.name}
-                      {role.builtIn && <Badge variant="secondary">内置</Badge>}
+                      {t(role.name)}
+                      {role.builtIn && <Badge variant="secondary">{t("内置")}</Badge>}
                     </span>
-                    <FieldDescription>{role.description}</FieldDescription>
+                    <FieldDescription>{t(role.description)}</FieldDescription>
                   </FieldContent>
                 </Field>
               </FieldLabel>
@@ -56,7 +58,7 @@ export function RoleChecklist({
           })}
         </div>
       )}
-      {error && <FieldError>{error}</FieldError>}
+      {error && <FieldError>{t(error)}</FieldError>}
     </FieldSet>
   )
 }

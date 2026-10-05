@@ -3,6 +3,7 @@ import { JetBrains_Mono, Public_Sans } from "next/font/google"
 
 import { Providers } from "@/components/providers"
 import { appConfig } from "@/lib/config"
+import { getLocale, getT } from "@/lib/i18n/server"
 import "./globals.css"
 
 const publicSans = Public_Sans({
@@ -15,26 +16,33 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 })
 
-export const metadata: Metadata = {
-  title: {
-    default: `${appConfig.systemName} · ${appConfig.agencyName}`,
-    template: `%s · ${appConfig.systemName}`,
-  },
-  description: `${appConfig.agencyName}内部业务系统，仅限授权工作人员使用。`,
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  const systemName = t(appConfig.systemName)
+  const agencyName = t(appConfig.agencyName)
+  return {
+    title: {
+      default: `${systemName} · ${agencyName}`,
+      template: `%s · ${systemName}`,
+    },
+    description: t("{agency}内部业务系统，仅限授权工作人员使用。", { agency: agencyName }),
+    robots: { index: false, follow: false },
+  }
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale()
+  const t = await getT()
   return (
-    <html lang="zh-CN" className={`${publicSans.variable} ${jetbrainsMono.variable} h-full`}>
+    <html lang={locale} className={`${publicSans.variable} ${jetbrainsMono.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
         >
-          跳到主要内容
+          {t("跳到主要内容")}
         </a>
-        <Providers>{children}</Providers>
+        <Providers locale={locale}>{children}</Providers>
       </body>
     </html>
   )

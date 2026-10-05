@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/features/auth/auth-provider"
 import { useDeleteRole, usePermissions, useRoles, useSaveRole } from "@/features/roles/api"
 import type { Permission, PermissionCode, Role } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 const roleSchema = z.object({
   name: z.string().trim().min(2, "角色名称至少 2 个字").max(20, "最多 20 个字"),
@@ -49,6 +50,7 @@ type RoleFormValues = z.infer<typeof roleSchema>
 const NEW = "__new__"
 
 export function RoleManager() {
+  const t = useT()
   const { can } = useAuth()
   const canManage = can("role.manage")
   const roles = useRoles()
@@ -61,20 +63,20 @@ export function RoleManager() {
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="角色与权限"
-        description="用户可持有多个角色，权限取各角色的并集。内置角色由系统维护，不可修改。"
+        title={t("角色与权限")}
+        description={t("用户可持有多个角色，权限取各角色的并集。内置角色由系统维护，不可修改。")}
         actions={
           canManage && (
             <Button onClick={() => setSelectedId(NEW)} disabled={selectedId === NEW}>
               <PlusIcon data-icon="inline-start" />
-              新建角色
+              {t("新建角色")}
             </Button>
           )
         }
       />
 
       <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-        <nav aria-label="角色列表" className="flex flex-col gap-1 self-start rounded-lg border bg-card p-1.5">
+        <nav aria-label={t("角色列表")} className="flex flex-col gap-1 self-start rounded-lg border bg-card p-1.5">
           {roles.isPending
             ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
             : roles.data?.map((role) => (
@@ -89,19 +91,19 @@ export function RoleManager() {
                   )}
                 >
                   <span className="flex items-center gap-2 text-sm font-medium">
-                    {role.name}
-                    {role.builtIn && <LockIcon className="size-3 text-muted-foreground" aria-label="内置角色" />}
+                    {t(role.name)}
+                    {role.builtIn && <LockIcon className="size-3 text-muted-foreground" aria-label={t("内置角色")} />}
                   </span>
                   <span className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span className="doc-number truncate">{role.code}</span>
-                    <span className="shrink-0 tabular-nums">{role.userCount} 人</span>
+                    <span className="shrink-0 tabular-nums">{t("{count} 人", { count: role.userCount })}</span>
                   </span>
                 </button>
               ))}
           {selectedId === NEW && (
             <div className="flex flex-col gap-0.5 rounded-md bg-accent px-3 py-2.5 text-accent-foreground" aria-current="true">
-              <span className="text-sm font-medium">新角色</span>
-              <span className="text-xs text-muted-foreground">未保存</span>
+              <span className="text-sm font-medium">{t("新角色")}</span>
+              <span className="text-xs text-muted-foreground">{t("未保存")}</span>
             </div>
           )}
         </nav>
@@ -115,7 +117,7 @@ export function RoleManager() {
           ) : roles.isError || permissions.isError ? (
             <Alert variant="destructive" className="m-6 w-auto">
               <CircleAlertIcon />
-              <AlertTitle>加载失败</AlertTitle>
+              <AlertTitle>{t("加载失败")}</AlertTitle>
               <AlertDescription>{errorMessage(roles.error ?? permissions.error)}</AlertDescription>
             </Alert>
           ) : (
@@ -150,6 +152,7 @@ function RoleEditor({
   onCancelNew: () => void
   onDeleted: () => void
 }) {
+  const t = useT()
   const save = useSaveRole()
   const remove = useDeleteRole()
   const form = useForm<RoleFormValues>({
@@ -168,7 +171,7 @@ function RoleEditor({
       { id: role?.id, ...values, permissions: values.permissions as PermissionCode[] },
       {
         onSuccess: (saved) => {
-          toast.success(isNew ? `已创建角色「${saved.name}」` : "角色权限已保存")
+          toast.success(isNew ? t("已创建角色「{name}」", { name: saved.name }) : t("角色权限已保存"))
           onSaved(saved)
         },
         onError: (e) => e instanceof ApiError && applyFieldErrors(e.fieldErrors, form.setError),
@@ -184,32 +187,32 @@ function RoleEditor({
         {role?.builtIn && (
           <Alert>
             <LockIcon />
-            <AlertTitle>系统内置角色</AlertTitle>
-            <AlertDescription>内置角色的权限由系统维护，如需不同的权限组合，请新建角色。</AlertDescription>
+            <AlertTitle>{t("系统内置角色")}</AlertTitle>
+            <AlertDescription>{t("内置角色的权限由系统维护，如需不同的权限组合，请新建角色。")}</AlertDescription>
           </Alert>
         )}
         {serverError && (
           <Alert variant="destructive">
             <CircleAlertIcon />
-            <AlertTitle>保存失败</AlertTitle>
+            <AlertTitle>{t("保存失败")}</AlertTitle>
             <AlertDescription>{errorMessage(save.error)}</AlertDescription>
           </Alert>
         )}
 
         <FieldGroup className="max-w-2xl">
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField control={form.control} name="name" label="角色名称" required disabled={readOnly} />
+            <TextField control={form.control} name="name" label={t("角色名称")} required disabled={readOnly} />
             <TextField
               control={form.control}
               name="code"
-              label="角色编码"
+              label={t("角色编码")}
               required
               disabled={readOnly || !isNew}
-              description={isNew ? "创建后不可修改，供后端鉴权使用" : undefined}
+              description={isNew ? t("创建后不可修改，供后端鉴权使用") : undefined}
               className="[&_input]:doc-number [&_input]:uppercase"
             />
           </div>
-          <TextareaField control={form.control} name="description" label="职责说明" rows={2} disabled={readOnly} />
+          <TextareaField control={form.control} name="description" label={t("职责说明")} rows={2} disabled={readOnly} />
         </FieldGroup>
 
         <Controller
@@ -234,34 +237,34 @@ function RoleEditor({
               <AlertDialogTrigger asChild>
                 <Button type="button" variant="ghost" className="text-destructive" disabled={remove.isPending}>
                   <Trash2Icon data-icon="inline-start" />
-                  删除角色
+                  {t("删除角色")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>删除角色「{role.name}」？</AlertDialogTitle>
+                  <AlertDialogTitle>{t("删除角色「{name}」？", { name: role.name })}</AlertDialogTitle>
                   <AlertDialogDescription>
                     {role.userCount > 0
-                      ? `仍有 ${role.userCount} 名用户持有该角色，需先在用户管理中移除后才能删除。`
-                      : "删除后无法恢复。"}
+                      ? t("仍有 {userCount} 名用户持有该角色，需先在用户管理中移除后才能删除。", { userCount: role.userCount })
+                      : t("删除后无法恢复。")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{t("取消")}</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
                     disabled={role.userCount > 0}
                     onClick={() =>
                       remove.mutate(role.id, {
                         onSuccess: () => {
-                          toast.success("角色已删除")
+                          toast.success(t("角色已删除"))
                           onDeleted()
                         },
                         onError: (e) => toast.error(errorMessage(e)),
                       })
                     }
                   >
-                    删除
+                    {t("删除")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -270,18 +273,18 @@ function RoleEditor({
             <span />
           )}
           <div className="flex items-center gap-3">
-            {form.formState.isDirty && <span className="text-xs text-muted-foreground">有未保存的更改</span>}
+            {form.formState.isDirty && <span className="text-xs text-muted-foreground">{t("有未保存的更改")}</span>}
             <Button
               type="button"
               variant="outline"
               onClick={() => (isNew ? onCancelNew() : form.reset())}
               disabled={!isNew && !form.formState.isDirty}
             >
-              {isNew ? "取消" : "撤销更改"}
+              {isNew ? t("取消") : t("撤销更改")}
             </Button>
             <Button type="submit" disabled={save.isPending || (!isNew && !form.formState.isDirty)}>
               {save.isPending && <Spinner data-icon="inline-start" />}
-              {isNew ? "创建角色" : "保存"}
+              {isNew ? t("创建角色") : t("保存")}
             </Button>
           </div>
         </div>
@@ -303,6 +306,7 @@ function PermissionMatrix({
   disabled: boolean
   error?: string
 }) {
+  const t = useT()
   const toggle = (codes: PermissionCode[], on: boolean) =>
     onChange(on ? [...new Set([...value, ...codes])] : value.filter((c) => !codes.includes(c)))
 
@@ -310,13 +314,13 @@ function PermissionMatrix({
     <section aria-labelledby="perm-title" className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id="perm-title" className="font-semibold">
-          权限
+          {t("权限")}
         </h2>
         <span className="text-sm text-muted-foreground tabular-nums">
-          已选 {value.length} / {permissions.length}
+          {t("已选 {selected} / {total}", { selected: value.length, total: permissions.length })}
         </span>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-destructive">{t(error)}</p>}
 
       <div className="flex flex-col divide-y rounded-lg border">
         {PERMISSION_MODULES.map(({ module, name }) => {
@@ -336,7 +340,7 @@ function PermissionMatrix({
                   disabled={disabled}
                 />
                 <FieldLabel htmlFor={`module-${module}`} className="font-semibold">
-                  {name}
+                  {t(name)}
                 </FieldLabel>
                 <Badge variant="secondary" className="ml-auto tabular-nums">
                   {selected}/{codes.length}
@@ -353,10 +357,10 @@ function PermissionMatrix({
                     />
                     <FieldContent>
                       <FieldLabel htmlFor={`perm-${p.code}`}>
-                        {p.name}
+                        {t(p.name)}
                         <span className="doc-number text-xs font-normal text-muted-foreground">{p.code}</span>
                       </FieldLabel>
-                      <FieldDescription>{p.description}</FieldDescription>
+                      <FieldDescription>{t(p.description)}</FieldDescription>
                     </FieldContent>
                   </Field>
                 ))}

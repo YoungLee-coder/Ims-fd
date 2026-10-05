@@ -1,6 +1,9 @@
+"use client"
+
 import * as React from "react"
 import { cn } from "cn"
 
+import { useT } from "@/lib/i18n/client"
 import { Button } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
@@ -63,35 +66,37 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
-  text = "上一页",
+  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+  const t = useT()
   return (
     <PaginationLink
-      aria-label="上一页"
+      aria-label={t("上一页")}
       size="default"
       className={cn("pl-1.5!", className)}
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
-      <span className="hidden sm:block">{text}</span>
+      <span className="hidden sm:block">{text ?? t("上一页")}</span>
     </PaginationLink>
   )
 }
 
 function PaginationNext({
   className,
-  text = "下一页",
+  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+  const t = useT()
   return (
     <PaginationLink
-      aria-label="下一页"
+      aria-label={t("下一页")}
       size="default"
       className={cn("pr-1.5!", className)}
       {...props}
     >
-      <span className="hidden sm:block">{text}</span>
+      <span className="hidden sm:block">{text ?? t("下一页")}</span>
       <ChevronRightIcon data-icon="inline-end" />
     </PaginationLink>
   )
@@ -101,6 +106,7 @@ function PaginationEllipsis({
   className,
   ...props
 }: React.ComponentProps<"span">) {
+  const t = useT()
   return (
     <span
       aria-hidden
@@ -113,7 +119,7 @@ function PaginationEllipsis({
     >
       <MoreHorizontalIcon
       />
-      <span className="sr-only">更多页</span>
+      <span className="sr-only">{t("更多页")}</span>
     </span>
   )
 }

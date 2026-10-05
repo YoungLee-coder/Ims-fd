@@ -37,6 +37,7 @@ import {
   type DocumentFormValues,
 } from "@/features/documents/schema"
 import type { Applicant, ID, IdentityDocument } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"]
 
@@ -51,11 +52,12 @@ export function DocumentSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useT()
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full gap-0 overscroll-contain data-[side=right]:sm:max-w-lg">
         <SheetHeader className="border-b">
-          <SheetTitle>{document ? "编辑证件" : "登记证件"}</SheetTitle>
+          <SheetTitle>{document ? t("编辑证件") : t("登记证件")}</SheetTitle>
           <SheetDescription>
             {applicant.surname} {applicant.givenNames} · <span className="doc-number">{applicant.fileNo}</span>
           </SheetDescription>
@@ -82,6 +84,7 @@ function DocumentForm({
   document?: IdentityDocument
   onDone: () => void
 }) {
+  const t = useT()
   const save = useSaveDocument(applicant.id)
   const [files, setFiles] = useState<File[]>([])
   const [removed, setRemoved] = useState<ID[]>([])
@@ -100,12 +103,12 @@ function DocumentForm({
     const accepted: File[] = []
     const rejected: string[] = []
     for (const file of Array.from(list)) {
-      if (!ACCEPTED_TYPES.includes(file.type)) rejected.push(`${file.name}：格式不支持`)
-      else if (file.size > ATTACHMENT_MAX_BYTES) rejected.push(`${file.name}：超过 10 MB`)
+      if (!ACCEPTED_TYPES.includes(file.type)) rejected.push(t("{name}：格式不支持", { name: file.name }))
+      else if (file.size > ATTACHMENT_MAX_BYTES) rejected.push(t("{name}：超过 10 MB", { name: file.name }))
       else accepted.push(file)
     }
     setFiles((prev) => [...prev, ...accepted])
-    setFileError(rejected.length ? rejected.join("；") : null)
+    setFileError(rejected.length ? rejected.join(t("；")) : null)
   }
 
   function onSubmit(values: DocumentFormValues) {
@@ -113,7 +116,7 @@ function DocumentForm({
       { id: document?.id, payload: toDocumentPayload(values), files, removedAttachmentIds: removed },
       {
         onSuccess: () => {
-          toast.success(document ? "证件信息已更新，需重新核验" : "证件已登记，等待核验")
+          toast.success(document ? t("证件信息已更新，需重新核验") : t("证件已登记，等待核验"))
           onDone()
         },
         onError: (error) => {
@@ -132,28 +135,28 @@ function DocumentForm({
           {save.isError && (
             <Alert variant="destructive">
               <CircleAlertIcon />
-              <AlertTitle>保存失败</AlertTitle>
+              <AlertTitle>{t("保存失败")}</AlertTitle>
               <AlertDescription>{errorMessage(save.error)}</AlertDescription>
             </Alert>
           )}
           {document?.verification === "verified" && (
             <Alert>
               <CircleAlertIcon />
-              <AlertDescription>该证件已核验。修改信息后，核验状态将重置为“待核验”。</AlertDescription>
+              <AlertDescription>{t("该证件已核验。修改信息后，核验状态将重置为“待核验”。")}</AlertDescription>
             </Alert>
           )}
           <div className="grid gap-5 sm:grid-cols-2">
             <SelectField
               control={form.control}
               name="type"
-              label="证件类型"
+              label={t("证件类型")}
               required
               options={Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
             />
             <TextField
               control={form.control}
               name="number"
-              label="证件号码"
+              label={t("证件号码")}
               required
               autoComplete="off"
               spellCheck={false}
@@ -163,25 +166,25 @@ function DocumentForm({
           <SelectField
             control={form.control}
             name="issuingCountry"
-            label="签发国家"
+            label={t("签发国家")}
             required
-            options={COUNTRIES.map((c) => ({ value: c.code, label: `${c.name}（${c.code}）` }))}
+            options={COUNTRIES.map((c) => ({ value: c.code, label: `${t(c.name)} (${c.code})` }))}
           />
-          <TextField control={form.control} name="issuingAuthority" label="签发机关" required />
+          <TextField control={form.control} name="issuingAuthority" label={t("签发机关")} required />
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField control={form.control} name="issueDate" label="签发日期" type="date" required />
+            <TextField control={form.control} name="issueDate" label={t("签发日期")} type="date" required />
             <TextField
               control={form.control}
               name="expiryDate"
-              label="有效期至"
+              label={t("有效期至")}
               type="date"
               required={!noExpiry}
-              description={noExpiry ? "此类证件可留空，表示长期有效" : undefined}
+              description={noExpiry ? t("此类证件可留空，表示长期有效") : undefined}
             />
           </div>
 
           <Field>
-            <FieldLabel htmlFor="attachments">扫描件</FieldLabel>
+            <FieldLabel htmlFor="attachments">{t("扫描件")}</FieldLabel>
             <label
               htmlFor="attachments"
               onDragOver={(e) => {
@@ -200,8 +203,8 @@ function DocumentForm({
               )}
             >
               <UploadIcon className="size-5 text-muted-foreground" />
-              <span className="text-sm font-medium">点击选择或拖入文件</span>
-              <span className="text-xs text-muted-foreground">PDF、JPG、PNG，单个不超过 10 MB</span>
+              <span className="text-sm font-medium">{t("点击选择或拖入文件")}</span>
+              <span className="text-xs text-muted-foreground">{t("PDF、JPG、PNG，单个不超过 10 MB")}</span>
               <input
                 id="attachments"
                 type="file"
@@ -243,11 +246,11 @@ function DocumentForm({
 
       <SheetFooter className="flex-row justify-end border-t">
         <Button type="button" variant="outline" onClick={onDone}>
-          取消
+          {t("取消")}
         </Button>
         <Button type="submit" disabled={save.isPending}>
           {save.isPending && <Spinner data-icon="inline-start" />}
-          {document ? "保存修改" : "登记证件"}
+          {document ? t("保存修改") : t("登记证件")}
         </Button>
       </SheetFooter>
     </form>
@@ -265,15 +268,16 @@ function AttachmentRow({
   pending?: boolean
   onRemove: () => void
 }) {
+  const t = useT()
   return (
     <li className="flex items-center gap-3 px-3 py-2 text-sm">
       <FileIcon className="size-4 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">{name}</span>
       <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-        {pending ? "待上传 · " : ""}
+        {pending ? t("待上传 · ") : ""}
         {formatFileSize(size)}
       </span>
-      <Button type="button" variant="ghost" size="icon-xs" onClick={onRemove} aria-label={`移除 ${name}`}>
+      <Button type="button" variant="ghost" size="icon-xs" onClick={onRemove} aria-label={t("移除 {name}", { name })}>
         <XIcon />
       </Button>
     </li>

@@ -19,6 +19,7 @@ import { errorMessage } from "@/lib/api/client"
 import { DECISION_ACTION_LABELS } from "@/lib/constants"
 import { useDecideApplication } from "@/features/applications/api"
 import type { ApplicationDecisionAction, ID } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 const NOTE_REQUIRED = new Set<ApplicationDecisionAction>(["request_supplement", "reject"])
 
@@ -63,6 +64,7 @@ function DecisionForm({
   action: ApplicationDecisionAction
   onDone: () => void
 }) {
+  const t = useT()
   const decide = useDecideApplication()
   const [note, setNote] = useState("")
   const required = NOTE_REQUIRED.has(action)
@@ -75,8 +77,8 @@ function DecisionForm({
       { id: applicationId, action, note: note.trim() || undefined },
       {
         onSuccess: (application) => {
-          const fileNo = action === "approve" && application.fileNo ? `，档案编号 ${application.fileNo}` : ""
-          toast.success(`已${DECISION_ACTION_LABELS[action]}${fileNo}`)
+          const fileNo = action === "approve" && application.fileNo ? t("，档案编号 {fileNo}", { fileNo: application.fileNo }) : ""
+          toast.success(t("已{action}{fileNo}", { action: t(DECISION_ACTION_LABELS[action]), fileNo }))
           onDone()
         },
         onError: (error) => toast.error(errorMessage(error)),
@@ -87,12 +89,12 @@ function DecisionForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <DialogHeader>
-        <DialogTitle>{DECISION_ACTION_LABELS[action]}</DialogTitle>
-        <DialogDescription>{HINTS[action]}</DialogDescription>
+        <DialogTitle>{t(DECISION_ACTION_LABELS[action])}</DialogTitle>
+        <DialogDescription>{t(HINTS[action])}</DialogDescription>
       </DialogHeader>
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="decision-note">{required ? "说明" : "意见（可选）"}</FieldLabel>
+          <FieldLabel htmlFor="decision-note">{required ? t("说明") : t("意见（可选）")}</FieldLabel>
           <Textarea
             id="decision-note"
             value={note}
@@ -104,11 +106,11 @@ function DecisionForm({
       </FieldGroup>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone}>
-          取消
+          {t("取消")}
         </Button>
         <Button type="submit" disabled={blocked || decide.isPending} variant={action === "reject" ? "destructive" : "default"}>
           {decide.isPending && <Spinner data-icon="inline-start" />}
-          确认
+          {t("确认")}
         </Button>
       </DialogFooter>
     </form>

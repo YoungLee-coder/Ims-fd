@@ -43,8 +43,10 @@ import { useDeleteDocument, useDocuments } from "@/features/documents/api"
 import { DocumentSheet } from "@/features/documents/document-sheet"
 import { VerifyDialog } from "@/features/documents/verify-dialog"
 import type { Applicant, IdentityDocument } from "@/types"
+import { useT } from "@/lib/i18n/client"
 
 export function DocumentList({ applicant }: { applicant: Applicant }) {
+  const t = useT()
   const { data, isPending, isError, error } = useDocuments(applicant.id)
   const remove = useDeleteDocument(applicant.id)
   const [editing, setEditing] = useState<{ open: boolean; doc?: IdentityDocument }>({ open: false })
@@ -57,12 +59,12 @@ export function DocumentList({ applicant }: { applicant: Applicant }) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          修改已核验证件的信息后，需要重新核验。
+          {t("修改已核验证件的信息后，需要重新核验。")}
         </p>
         <Can anyOf="document.create">
           <Button onClick={openCreate}>
             <PlusIcon data-icon="inline-start" />
-            登记证件
+            {t("登记证件")}
           </Button>
         </Can>
       </div>
@@ -75,7 +77,7 @@ export function DocumentList({ applicant }: { applicant: Applicant }) {
       ) : isError ? (
         <Empty className="rounded-lg border py-10">
           <EmptyHeader>
-            <EmptyTitle>证件加载失败</EmptyTitle>
+            <EmptyTitle>{t("证件加载失败")}</EmptyTitle>
             <EmptyDescription>{errorMessage(error)}</EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -85,13 +87,13 @@ export function DocumentList({ applicant }: { applicant: Applicant }) {
             <EmptyMedia variant="icon">
               <FileTextIcon />
             </EmptyMedia>
-            <EmptyTitle>尚未登记证件</EmptyTitle>
-            <EmptyDescription>通常先登记护照，再登记签证或居留许可。</EmptyDescription>
+            <EmptyTitle>{t("尚未登记证件")}</EmptyTitle>
+            <EmptyDescription>{t("通常先登记护照，再登记签证或居留许可。")}</EmptyDescription>
           </EmptyHeader>
           <Can anyOf="document.create">
             <EmptyContent>
               <Button variant="outline" onClick={openCreate}>
-                登记第一份证件
+                {t("登记第一份证件")}
               </Button>
             </EmptyContent>
           </Can>
@@ -121,29 +123,29 @@ export function DocumentList({ applicant }: { applicant: Applicant }) {
       <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除这份证件记录？</AlertDialogTitle>
+            <AlertDialogTitle>{t("删除这份证件记录？")}</AlertDialogTitle>
             <AlertDialogDescription>
               {deleting && (
                 <>
                   {DOCUMENT_TYPE_LABELS[deleting.type]} <span className="doc-number">{deleting.number}</span>{" "}
-                  及其 {deleting.attachments.length} 个附件将被删除，无法恢复。
+                  {t("及其 {count} 个附件将被删除，无法恢复。", { count: deleting.attachments.length })}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t("取消")}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() =>
                 deleting &&
                 remove.mutate(deleting.id, {
-                  onSuccess: () => toast.success("证件记录已删除"),
+                  onSuccess: () => toast.success(t("证件记录已删除")),
                   onError: (e) => toast.error(errorMessage(e)),
                 })
               }
             >
-              删除
+              {t("删除")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -163,6 +165,7 @@ function DocumentRow({
   onVerify: () => void
   onDelete: () => void
 }) {
+  const t = useT()
   const { can } = useAuth()
   const canUpdate = can("document.update")
   const canVerify = can("document.verify")
@@ -181,29 +184,29 @@ function DocumentRow({
 
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm lg:grid-cols-4">
           <div className="flex flex-col">
-            <dt className="text-xs text-muted-foreground">签发国家</dt>
+            <dt className="text-xs text-muted-foreground">{t("签发国家")}</dt>
             <dd>
-              {countryName(doc.issuingCountry)} <span className="doc-number text-muted-foreground">{doc.issuingCountry}</span>
+              {countryName(doc.issuingCountry, t)} <span className="doc-number text-muted-foreground">{doc.issuingCountry}</span>
             </dd>
           </div>
           <div className="flex min-w-0 flex-col">
-            <dt className="text-xs text-muted-foreground">签发机关</dt>
+            <dt className="text-xs text-muted-foreground">{t("签发机关")}</dt>
             <dd className="truncate" title={doc.issuingAuthority}>
               {doc.issuingAuthority}
             </dd>
           </div>
           <div className="flex flex-col">
-            <dt className="text-xs text-muted-foreground">签发日期</dt>
+            <dt className="text-xs text-muted-foreground">{t("签发日期")}</dt>
             <dd className="tabular-nums">{formatDate(doc.issueDate)}</dd>
           </div>
           <div className="flex flex-col">
-            <dt className="text-xs text-muted-foreground">有效期至</dt>
-            <dd className="tabular-nums">{doc.expiryDate ? formatDate(doc.expiryDate) : "长期"}</dd>
+            <dt className="text-xs text-muted-foreground">{t("有效期至")}</dt>
+            <dd className="tabular-nums">{doc.expiryDate ? formatDate(doc.expiryDate) : t("长期")}</dd>
           </div>
         </dl>
 
         {doc.attachments.length > 0 && (
-          <ul className="flex flex-wrap gap-2" aria-label="附件">
+          <ul className="flex flex-wrap gap-2" aria-label={t("附件")}>
             {doc.attachments.map((a) => (
               <li key={a.id}>
                 <a
@@ -224,9 +227,10 @@ function DocumentRow({
 
         {doc.verification !== "pending" && (
           <p className="text-xs text-muted-foreground">
-            {doc.verifiedBy} 于 <span className="tabular-nums">{formatDateTime(doc.verifiedAt)}</span>{" "}
-            {doc.verification === "verified" ? "核验通过" : "驳回"}
-            {doc.verificationNote && <span className="text-foreground">：{doc.verificationNote}</span>}
+            {t("{name} 于", { name: doc.verifiedBy ?? "" })}{" "}
+            <span className="tabular-nums">{formatDateTime(doc.verifiedAt)}</span>{" "}
+            {doc.verification === "verified" ? t("核验通过") : t("驳回")}
+            {doc.verificationNote && <span className="text-foreground">{t("：")}{doc.verificationNote}</span>}
           </p>
         )}
       </div>
@@ -236,13 +240,13 @@ function DocumentRow({
           {canVerify && doc.verification === "pending" && (
             <Button variant="outline" size="sm" onClick={onVerify}>
               <BadgeCheckIcon data-icon="inline-start" />
-              核验
+              {t("核验")}
             </Button>
           )}
           {hasMenu && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label={`${doc.number} 的更多操作`}>
+              <Button variant="ghost" size="icon-sm" aria-label={t("{number} 的更多操作", { number: doc.number })}>
                 <EllipsisIcon />
               </Button>
             </DropdownMenuTrigger>
@@ -251,13 +255,13 @@ function DocumentRow({
                 {canUpdate && (
                   <DropdownMenuItem onSelect={onEdit}>
                     <PencilIcon />
-                    编辑
+                    {t("编辑")}
                   </DropdownMenuItem>
                 )}
                 {canVerify && doc.verification !== "pending" && (
                   <DropdownMenuItem onSelect={onVerify}>
                     <BadgeCheckIcon />
-                    重新核验
+                    {t("重新核验")}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuGroup>
@@ -267,7 +271,7 @@ function DocumentRow({
                   <DropdownMenuGroup>
                     <DropdownMenuItem variant="destructive" onSelect={onDelete}>
                       <Trash2Icon />
-                      删除
+                      {t("删除")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </>
