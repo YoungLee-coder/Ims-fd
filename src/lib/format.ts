@@ -1,8 +1,21 @@
 import { differenceInCalendarDays, format, formatDistanceToNowStrict, parseISO } from "date-fns"
-import { enUS, zhCN } from "date-fns/locale"
+import { de, enUS, es, fr, ja, ko, ru, zhCN, zhTW } from "date-fns/locale"
 
 import { EXPIRY_WARNING_DAYS } from "@/lib/constants"
 import type { Locale } from "@/lib/i18n/config"
+import { MESSAGES } from "@/lib/i18n/messages"
+
+const DATE_FNS_LOCALE: Record<Locale, typeof enUS> = {
+  "zh-CN": zhCN,
+  "zh-TW": zhTW,
+  en: enUS,
+  ja,
+  ko,
+  fr,
+  de,
+  es,
+  ru,
+}
 
 export function formatDate(value: string | null | undefined) {
   if (!value) return "—"
@@ -15,11 +28,15 @@ export function formatDateTime(value: string | null | undefined) {
 }
 
 export function formatRelative(value: string | null | undefined, locale: Locale) {
-  if (!value) return locale === "en" ? "Never" : "从未"
+  if (!value) {
+    return locale === "zh-CN" ? "从未" : (MESSAGES[locale]["从未"] ?? MESSAGES.en["从未"] ?? "从未")
+  }
   const date = parseISO(value)
-  return locale === "en"
-    ? formatDistanceToNowStrict(date, { locale: enUS, addSuffix: true })
-    : `${formatDistanceToNowStrict(date, { locale: zhCN })}前`
+  const dfLocale = DATE_FNS_LOCALE[locale]
+  if (locale === "zh-CN" || locale === "zh-TW") {
+    return `${formatDistanceToNowStrict(date, { locale: dfLocale })}前`
+  }
+  return formatDistanceToNowStrict(date, { locale: dfLocale, addSuffix: true })
 }
 
 export function formatFileSize(bytes: number) {

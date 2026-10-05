@@ -1,10 +1,11 @@
-// 校验英文词典：列出代码中出现但词典里缺失的中文文案，以及词典里已不再使用的条目。
+// 校验各语言词典：列出代码中出现但词典里缺失的中文文案，以及词典里已不再使用的条目。
 // 用法：pnpm i18n:check
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 
 const SRC = new URL("../src", import.meta.url).pathname
-const DICT = join(SRC, "lib/i18n/messages/en.ts")
+const MESSAGES_DIR = join(SRC, "lib/i18n/messages")
+const DICTS = ["en", "zh-TW", "ja", "ko", "fr", "de", "es", "ru"]
 const CJK = /[一-鿿　-〿＀-￯]/
 
 function walk(dir) {
@@ -13,6 +14,13 @@ function walk(dir) {
     if (statSync(path).isDirectory()) return walk(path)
     return /\.tsx?$/.test(name) && !path.includes("/lib/i18n/") ? [path] : []
   })
+}
+
+function parseDict(filePath) {
+  const source = readFileSync(filePath, "utf8")
+  const match = source.match(/export const \w+[^=]*=\s*(\{[\s\S]*\})\s*$/m)
+  if (!match) throw new Error(`无法解析 ${filePath}`)
+  return Function(`"use strict"; return (${match[1]})`)()
 }
 
 const used = new Set()
@@ -27,15 +35,19 @@ for (const file of walk(SRC)) {
   }
 }
 
-const dictSource = readFileSync(DICT, "utf8")
-const defined = new Set([...dictSource.matchAll(/^\s*"((?:[^"\\\n]|\\.)*)":/gm)].map((m) => m[1].replaceAll('\\"', '"')))
-
-const missing = [...used].filter((k) => !defined.has(k))
-const unused = [...defined].filter((k) => !used.has(k))
-
-if (unused.length) console.warn(`词典中未使用的条目（${unused.length}）:\n  ${unused.join("\n  ")}\n`)
-if (missing.length) {
-  console.error(`词典缺少英文译文（${missing.length}）:\n  ${missing.join("\n  ")}`)
-  process.exit(1)
+let failed = false
+for (const id of DICTS) {
+  const filePath = join(MESSAGES_DIR, `${id}.ts`)
+  const defined = new Set(Object.keys(parseDict(filePath)))
+  const missing = [...used].filter((k) => !defined.has(k))
+  const unused = [...defined].filter((k) => !used.has(k))
+  if (unused.length) console.warn(`[${id}] 词典中未使用的条目（${unused.length}）`)
+  if (missing.length) {
+    failed = true
+    console.error(`[${id}] 词典缺少译文（${missing.length}）:\n  ${missing.join("\n  ")}`)
+  } else {
+    console.log(`[${id}] 校验通过：${used.size} 条文案均有译文`)
+  }
 }
-console.log(`i18n 校验通过：${used.size} 条文案均有英文译文。`)
+
+if (failed) process.exit(1)

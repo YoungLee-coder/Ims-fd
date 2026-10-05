@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "i18n:check": "node scripts/i18n-check.mjs"
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "i18n:generate": "node scripts/i18n-generate-locales.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -36,6 +37,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "google-translate-api-x": "^10.7.3",
+    "opencc-js": "^1.4.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

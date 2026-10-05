@@ -1,4 +1,4 @@
-export const LOCALES = ["zh-CN", "en"] as const
+export const LOCALES = ["zh-CN", "zh-TW", "en", "ja", "ko", "fr", "de", "es", "ru"] as const
 export type Locale = (typeof LOCALES)[number]
 
 export const DEFAULT_LOCALE: Locale = "zh-CN"
@@ -6,7 +6,14 @@ export const LOCALE_COOKIE = "ims_locale"
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   "zh-CN": "简体中文",
+  "zh-TW": "繁體中文",
   en: "English",
+  ja: "日本語",
+  ko: "한국어",
+  fr: "Français",
+  de: "Deutsch",
+  es: "Español",
+  ru: "Русский",
 }
 
 export function isLocale(value: string | null | undefined): value is Locale {
@@ -24,7 +31,14 @@ export function negotiateLocale(acceptLanguage: string | null | undefined): Loca
     })
     .sort((a, b) => b.q - a.q)
   for (const { tag } of tags) {
+    if (tag === "zh-tw" || tag === "zh-hk" || tag === "zh-hant" || tag.startsWith("zh-hant")) return "zh-TW"
     if (tag.startsWith("zh")) return "zh-CN"
+    if (tag.startsWith("ja")) return "ja"
+    if (tag.startsWith("ko")) return "ko"
+    if (tag.startsWith("fr")) return "fr"
+    if (tag.startsWith("de")) return "de"
+    if (tag.startsWith("es")) return "es"
+    if (tag.startsWith("ru")) return "ru"
     if (tag.startsWith("en")) return "en"
   }
   return DEFAULT_LOCALE
