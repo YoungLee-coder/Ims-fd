@@ -1,4 +1,4 @@
-// 校验各语言词典：列出代码中出现但词典里缺失的中文文案，以及词典里已不再使用的条目。
+// 校验各语言词典：与代码中中文文案对齐，且各语言 key 集合完全一致。
 // 用法：pnpm i18n:check
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
@@ -35,19 +35,33 @@ for (const file of walk(SRC)) {
   }
 }
 
+const parsed = Object.fromEntries(DICTS.map((id) => [id, parseDict(join(MESSAGES_DIR, `${id}.ts`))]))
+const referenceKeys = new Set(Object.keys(parsed.en))
+
 let failed = false
+
 for (const id of DICTS) {
-  const filePath = join(MESSAGES_DIR, `${id}.ts`)
-  const defined = new Set(Object.keys(parseDict(filePath)))
+  const defined = new Set(Object.keys(parsed[id]))
   const missing = [...used].filter((k) => !defined.has(k))
-  const unused = [...defined].filter((k) => !used.has(k))
-  if (unused.length) console.warn(`[${id}] 词典中未使用的条目（${unused.length}）`)
+  const extraInDict = [...defined].filter((k) => !referenceKeys.has(k))
+  const missingFromEn = [...referenceKeys].filter((k) => !defined.has(k))
+
   if (missing.length) {
     failed = true
     console.error(`[${id}] 词典缺少译文（${missing.length}）:\n  ${missing.join("\n  ")}`)
   } else {
-    console.log(`[${id}] 校验通过：${used.size} 条文案均有译文`)
+    console.log(`[${id}] 代码文案覆盖：${used.size} 条均有译文`)
+  }
+
+  if (missingFromEn.length) {
+    failed = true
+    console.error(`[${id}] 与 en.ts key 不一致，缺少 ${missingFromEn.length} 条:\n  ${missingFromEn.slice(0, 20).join("\n  ")}${missingFromEn.length > 20 ? "\n  …" : ""}`)
+  }
+  if (extraInDict.length) {
+    failed = true
+    console.error(`[${id}] 与 en.ts key 不一致，多出 ${extraInDict.length} 条`)
   }
 }
 
 if (failed) process.exit(1)
+console.log("i18n 校验通过：各语言词典 key 一致且覆盖全部界面文案。")

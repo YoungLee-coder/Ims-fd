@@ -3,7 +3,7 @@ import { de, enUS, es, fr, ja, ko, ru, zhCN, zhTW } from "date-fns/locale"
 
 import { EXPIRY_WARNING_DAYS } from "@/lib/constants"
 import type { Locale } from "@/lib/i18n/config"
-import { MESSAGES } from "@/lib/i18n/messages"
+import { translate } from "@/lib/i18n/translate"
 
 const DATE_FNS_LOCALE: Record<Locale, typeof enUS> = {
   "zh-CN": zhCN,
@@ -28,9 +28,7 @@ export function formatDateTime(value: string | null | undefined) {
 }
 
 export function formatRelative(value: string | null | undefined, locale: Locale) {
-  if (!value) {
-    return locale === "zh-CN" ? "从未" : (MESSAGES[locale]["从未"] ?? MESSAGES.en["从未"] ?? "从未")
-  }
+  if (!value) return translate(locale, "从未")
   const date = parseISO(value)
   const dfLocale = DATE_FNS_LOCALE[locale]
   if (locale === "zh-CN" || locale === "zh-TW") {

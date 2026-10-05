@@ -2,7 +2,8 @@
 
 import { cn } from "@/lib/utils"
 import { appConfig } from "@/lib/config"
-import { useT } from "@/lib/i18n/client"
+import { useLocale, useT } from "@/lib/i18n/client"
+import { MESSAGES } from "@/lib/i18n/messages"
 
 /** 机构标识占位：上线前替换为正式国徽 / 局徽 SVG。 */
 export function AgencyMark({ className }: { className?: string }) {
@@ -22,14 +23,16 @@ export function AgencyMark({ className }: { className?: string }) {
 
 export function AgencyLockup({ className, compact = false }: { className?: string; compact?: boolean }) {
   const t = useT()
+  const locale = useLocale()
+  const showLatinSubtitle = !compact && (locale === "zh-CN" || locale === "zh-TW")
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <AgencyMark />
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="truncate text-sm font-semibold">{t(appConfig.agencyName)}</span>
-        {!compact && (
+        {showLatinSubtitle && (
           <span lang="en" className="truncate text-[0.7rem] tracking-wide opacity-70">
-            {appConfig.agencyNameEn}
+            {MESSAGES.en[appConfig.agencyName]}
           </span>
         )}
       </div>

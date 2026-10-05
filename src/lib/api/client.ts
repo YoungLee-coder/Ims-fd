@@ -1,6 +1,6 @@
 import { PORTAL_BASE_PATH, appConfig } from "@/lib/config"
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config"
-import { translate } from "@/lib/i18n/translate"
+import { translate, translateApiMessage } from "@/lib/i18n/translate"
 import {
   clearPortalSession,
   clearSession,
@@ -146,6 +146,6 @@ export const portalApi = createApi("portal")
 
 export function errorMessage(error: unknown) {
   const locale = currentLocale()
-  if (error instanceof Error) return translate(locale, error.message)
+  if (error instanceof Error) return translateApiMessage(locale, error.message)
   return translate(locale, "发生未知错误，请稍后重试。")
 }
