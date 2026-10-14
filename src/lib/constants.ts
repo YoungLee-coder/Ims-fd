@@ -4,6 +4,7 @@ import type {
   ApplicationDecisionAction,
   ApplicationStatus,
   ApplicationType,
+  ApprovalLevel,
   DocumentType,
   MaritalStatus,
   Sex,
@@ -135,9 +136,16 @@ export const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
 
 export const DECISION_ACTION_LABELS: Record<ApplicationDecisionAction, string> = {
   start_review: "开始审核",
+  pass_first_review: "初审通过",
+  return_to_first_review: "退回初审",
   request_supplement: "要求补件",
   approve: "通过并建档",
   reject: "驳回",
+}
+
+export const APPROVAL_LEVEL_LABELS: Record<ApprovalLevel, string> = {
+  first_review: "初审",
+  final_review: "终审",
 }
 
 /** 已进入受理流程、申请人不可再编辑的状态 */

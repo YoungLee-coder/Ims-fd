@@ -12,19 +12,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { errorMessage } from "@/lib/api/client"
 import { DECISION_ACTION_LABELS } from "@/lib/constants"
 import { useDecideApplication } from "@/features/applications/api"
+import { NOTE_REQUIRED_ACTIONS } from "@/features/applications/workflow"
 import type { ApplicationDecisionAction, ID } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
-const NOTE_REQUIRED = new Set<ApplicationDecisionAction>(["request_supplement", "reject"])
-
 const HINTS: Record<ApplicationDecisionAction, string> = {
   start_review: "受理后申请进入审核。意见可以留空。",
+  pass_first_review: "初审意见会随申请一并转交终审，终审须由另一位工作人员完成。",
+  return_to_first_review: "请写明需要初审重新核查的内容，申请会回到初审。",
   request_supplement: "请写明需要补交的材料，申请人会在门户看到这段说明。",
   approve: "通过后如果还没有档案，系统会按本申请建立档案，并把护照登记为已核验证件。",
   reject: "请填写驳回理由，申请人会在门户看到。",
@@ -67,7 +68,7 @@ function DecisionForm({
   const t = useT()
   const decide = useDecideApplication()
   const [note, setNote] = useState("")
-  const required = NOTE_REQUIRED.has(action)
+  const required = NOTE_REQUIRED_ACTIONS.has(action)
   const blocked = required && !note.trim()
 
   function submit(event: React.FormEvent) {
@@ -94,7 +95,7 @@ function DecisionForm({
       </DialogHeader>
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="decision-note">{required ? t("说明") : t("意见（可选）")}</FieldLabel>
+          <FieldLabel htmlFor="decision-note">{required ? t("审批意见") : t("意见（可选）")}</FieldLabel>
           <Textarea
             id="decision-note"
             value={note}
@@ -102,6 +103,7 @@ function DecisionForm({
             rows={4}
             required={required}
           />
+          <FieldDescription>{t("审批意见会连同你的姓名与操作时间一并存档。")}</FieldDescription>
         </Field>
       </FieldGroup>
       <DialogFooter>
