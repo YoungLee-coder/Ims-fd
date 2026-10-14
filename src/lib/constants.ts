@@ -2,6 +2,7 @@ import type { TFunction } from "@/lib/i18n/translate"
 import type {
   ApplicantStatus,
   ApplicationDecisionAction,
+  ApplicationDocumentCategory,
   ApplicationStatus,
   ApplicationType,
   ApprovalLevel,
@@ -94,6 +95,13 @@ export const VERIFICATION_LABELS: Record<VerificationStatus, string> = {
 
 /** 证件剩余有效期低于该天数即提示 */
 export const EXPIRY_WARNING_DAYS = 180
+
+export const APPLICATION_DOCUMENT_CATEGORY_LABELS: Record<ApplicationDocumentCategory, string> = {
+  passport_scan: "护照扫描件",
+  photo: "证件照片",
+  supporting: "证明材料",
+  other: "其他材料",
+}
 
 export const ATTACHMENT_ACCEPT = ".pdf,.jpg,.jpeg,.png"
 export const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024

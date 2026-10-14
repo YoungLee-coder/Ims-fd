@@ -26,18 +26,22 @@ import { formatDate } from "@/lib/format"
 import { useAuth } from "@/features/auth/auth-provider"
 import { Can } from "@/features/auth/require-permission"
 import { useStaffApplication } from "@/features/applications/api"
+import { ApplicationDocuments, useUnverifiedDocumentCount } from "@/features/applications/application-documents"
 import { ApprovalHistory, ApprovalProgress } from "@/features/applications/approval-history"
 import { DecisionDialog } from "@/features/applications/decision-dialog"
 import { firstReviewer, isMultiLevel, workflowStep } from "@/features/applications/workflow"
 import { ApplicationTimeline } from "@/features/portal/application-timeline"
-import { AttachmentList } from "@/features/portal/attachment-list"
 import type { Application, ApplicationDecisionAction } from "@/types"
 import { useT } from "@/lib/i18n/client"
+
+/** 这两个决定会让申请继续向前，要求材料已全部核验通过。 */
+const NEEDS_VERIFIED_DOCUMENTS = new Set<ApplicationDecisionAction>(["pass_first_review", "approve"])
 
 export function StaffApplicationDetail({ id }: { id: string }) {
   const t = useT()
   const { user } = useAuth()
   const { data, isPending, isError, error } = useStaffApplication(id)
+  const unverified = useUnverifiedDocumentCount(id)
   const [action, setAction] = useState<ApplicationDecisionAction | null>(null)
 
   if (isPending) {
@@ -89,7 +93,7 @@ export function StaffApplicationDetail({ id }: { id: string }) {
               <Button
                 key={item}
                 variant={item === "approve" || item === "pass_first_review" ? "default" : "outline"}
-                disabled={selfReview}
+                disabled={selfReview || (NEEDS_VERIFIED_DOCUMENTS.has(item) && !!unverified)}
                 onClick={() => setAction(item)}
               >
                 {t(DECISION_ACTION_LABELS[item])}
@@ -119,6 +123,14 @@ export function StaffApplicationDetail({ id }: { id: string }) {
         </Alert>
       )}
 
+      {!selfReview && !!unverified && step.actions.some((item) => NEEDS_VERIFIED_DOCUMENTS.has(item)) && (
+        <Alert className="mb-6">
+          <CircleAlertIcon />
+          <AlertTitle>{t("还有 {count} 份材料未核验通过", { count: unverified })}</AlertTitle>
+          <AlertDescription>{t("材料全部核验通过后才能作出通过决定；材料有问题时可以要求补件或驳回。")}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="flex flex-col gap-6">
           {multiLevel && (
@@ -132,8 +144,8 @@ export function StaffApplicationDetail({ id }: { id: string }) {
           <Section title={t("办理进度")}>
             <ApplicationTimeline timeline={data.timeline} />
           </Section>
-          <Section title={t("申请材料（{count}）", { count: data.attachments.length })}>
-            <AttachmentList attachments={data.attachments} emptyHint={t("本次申请尚未上传材料。")} />
+          <Section title={t("申请材料")}>
+            <ApplicationDocuments application={data} />
           </Section>
         </div>
         <div className="flex flex-col gap-6">

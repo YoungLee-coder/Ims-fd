@@ -22,11 +22,11 @@ import { Spinner } from "@/components/ui/spinner"
 import { ApiError, errorMessage } from "@/lib/api/client"
 import {
   ATTACHMENT_ACCEPT,
-  ATTACHMENT_MAX_BYTES,
   COUNTRIES,
   DOCUMENT_TYPE_LABELS,
 } from "@/lib/constants"
 import { formatFileSize } from "@/lib/format"
+import { checkUploads, describeUploadCheck } from "@/lib/upload"
 import { cn } from "@/lib/utils"
 import { useSaveDocument } from "@/features/documents/api"
 import {
@@ -38,8 +38,6 @@ import {
 } from "@/features/documents/schema"
 import type { Applicant, ID, IdentityDocument } from "@/types"
 import { useT } from "@/lib/i18n/client"
-
-const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"]
 
 export function DocumentSheet({
   applicant,
@@ -98,17 +96,15 @@ function DocumentForm({
   const type = useWatch({ control: form.control, name: "type" })
   const noExpiry = !!type && (NO_EXPIRY_TYPES as readonly string[]).includes(type)
 
-  function addFiles(list: FileList | null) {
+  async function addFiles(list: FileList | null) {
     if (!list) return
-    const accepted: File[] = []
-    const rejected: string[] = []
-    for (const file of Array.from(list)) {
-      if (!ACCEPTED_TYPES.includes(file.type)) rejected.push(t("{name}：格式不支持", { name: file.name }))
-      else if (file.size > ATTACHMENT_MAX_BYTES) rejected.push(t("{name}：超过 10 MB", { name: file.name }))
-      else accepted.push(file)
-    }
-    setFiles((prev) => [...prev, ...accepted])
-    setFileError(rejected.length ? rejected.join(t("；")) : null)
+    const picked = Array.from(list)
+    const kept = (document?.attachments ?? []).filter((a) => !removed.includes(a.id))
+    const check = await checkUploads(picked, {
+      existingNames: [...kept.map((a) => a.fileName), ...files.map((f) => f.name)],
+    })
+    if (!check.overLimit) setFiles((prev) => [...prev, ...check.accepted])
+    setFileError(describeUploadCheck(t, check))
   }
 
   function onSubmit(values: DocumentFormValues) {

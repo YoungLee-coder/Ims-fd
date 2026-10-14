@@ -409,6 +409,23 @@ export interface ApplicationDecisionPayload {
   note?: string
 }
 
+/** 申请材料的用途分类，便于核验人员对照清单。 */
+export type ApplicationDocumentCategory = "passport_scan" | "photo" | "supporting" | "other"
+
+/** 申请材料来源：申请人在门户上传，或工作人员在窗口代为扫描上传。 */
+export type ApplicationDocumentSource = "applicant" | "staff"
+
+/** 工作人员视角的申请材料：在附件基础上带核验状态。 */
+export interface ApplicationDocument extends Attachment {
+  applicationId: ID
+  category: ApplicationDocumentCategory
+  source: ApplicationDocumentSource
+  verification: VerificationStatus
+  verificationNote: string
+  verifiedBy: string | null
+  verifiedAt: ISODateTime | null
+}
+
 export interface ReportSummary {
   applicationTotal: number
   /** 已通过 /（已通过 + 已驳回）；尚无终态申请时为 null */

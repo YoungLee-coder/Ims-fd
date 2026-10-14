@@ -33,13 +33,13 @@ import {
   APPLICATION_TYPE_HINTS,
   APPLICATION_TYPE_LABELS,
   ATTACHMENT_ACCEPT,
-  ATTACHMENT_MAX_BYTES,
   ATTACHMENT_MAX_COUNT,
   COUNTRIES,
   MARITAL_LABELS,
   SEX_LABELS,
 } from "@/lib/constants"
 import { formatDate, formatFileSize } from "@/lib/format"
+import { checkUploads, describeUploadCheck } from "@/lib/upload"
 import { cn } from "@/lib/utils"
 import { useApplication, useRemoveAttachment, useSaveDraft, useSubmitApplication, useUploadAttachments } from "@/features/portal/api"
 import { AttachmentList } from "@/features/portal/attachment-list"
@@ -67,7 +67,6 @@ const LAST_STEP = STEPS.length - 1
 const PASSPORT_STEP = 2
 const MATERIALS_STEP = 3
 
-const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"]
 
 export function ApplicationWizard() {
   const t = useT()
@@ -143,21 +142,11 @@ export function ApplicationWizard() {
     setStep((s) => Math.min(s + 1, LAST_STEP))
   }
 
-  function addFiles(list: FileList | null) {
+  async function addFiles(list: FileList | null) {
     if (!list || !draftId) return
-    const accepted: File[] = []
-    const rejected: string[] = []
-    for (const file of Array.from(list)) {
-      if (!ACCEPTED_TYPES.includes(file.type)) rejected.push(t("{name}：格式不支持", { name: file.name }))
-      else if (file.size > ATTACHMENT_MAX_BYTES) rejected.push(t("{name}：超过 10 MB", { name: file.name }))
-      else accepted.push(file)
-    }
-    if (attachments.length + accepted.length > ATTACHMENT_MAX_COUNT) {
-      setFileError(t("最多上传 {ATTACHMENT_MAX_COUNT} 份材料", { ATTACHMENT_MAX_COUNT }))
-      return
-    }
-    setFileError(rejected.length ? rejected.join(t("；")) : null)
-    if (accepted.length) upload.mutate({ id: draftId, files: accepted })
+    const check = await checkUploads(Array.from(list), { existingNames: attachments.map((a) => a.fileName) })
+    setFileError(describeUploadCheck(t, check))
+    if (!check.overLimit && check.accepted.length) upload.mutate({ id: draftId, files: check.accepted })
   }
 
   async function onSubmit() {
