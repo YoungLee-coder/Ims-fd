@@ -2,8 +2,10 @@ import type { TFunction } from "@/lib/i18n/translate"
 import type {
   ApplicantStatus,
   ApplicationDecisionAction,
+  ApplicationDocumentCategory,
   ApplicationStatus,
   ApplicationType,
+  ApprovalLevel,
   DocumentType,
   MaritalStatus,
   Sex,
@@ -94,6 +96,13 @@ export const VERIFICATION_LABELS: Record<VerificationStatus, string> = {
 /** 证件剩余有效期低于该天数即提示 */
 export const EXPIRY_WARNING_DAYS = 180
 
+export const APPLICATION_DOCUMENT_CATEGORY_LABELS: Record<ApplicationDocumentCategory, string> = {
+  passport_scan: "护照扫描件",
+  photo: "证件照片",
+  supporting: "证明材料",
+  other: "其他材料",
+}
+
 export const ATTACHMENT_ACCEPT = ".pdf,.jpg,.jpeg,.png"
 export const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024
 export const ATTACHMENT_MAX_COUNT = 10
@@ -135,9 +144,16 @@ export const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
 
 export const DECISION_ACTION_LABELS: Record<ApplicationDecisionAction, string> = {
   start_review: "开始审核",
+  pass_first_review: "初审通过",
+  return_to_first_review: "退回初审",
   request_supplement: "要求补件",
   approve: "通过并建档",
   reject: "驳回",
+}
+
+export const APPROVAL_LEVEL_LABELS: Record<ApprovalLevel, string> = {
+  first_review: "初审",
+  final_review: "终审",
 }
 
 /** 已进入受理流程、申请人不可再编辑的状态 */

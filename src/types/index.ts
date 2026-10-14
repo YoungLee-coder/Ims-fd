@@ -33,6 +33,8 @@ export type PermissionCode =
   | "user.manage"
   | "role.read"
   | "role.manage"
+  | "application.review"
+  | "application.approve"
 
 export interface Permission {
   code: PermissionCode
@@ -41,7 +43,7 @@ export interface Permission {
   module: PermissionModule
 }
 
-export type PermissionModule = "applicant" | "document" | "user" | "role"
+export type PermissionModule = "applicant" | "document" | "application" | "user" | "role"
 
 export interface Role {
   id: ID
@@ -339,6 +341,13 @@ export interface Application {
 
   /* 受理结果 */
   reviewNote: string
+  /**
+   * 多级审批：审核中的申请当前停在哪一级（初审 / 终审），其余状态为 null。
+   * 旧版后端不返回该字段，前端按单级审批处理。
+   */
+  approvalLevel?: ApprovalLevel | null
+  /** 审批意见记录，按时间正序；旧版后端不返回 */
+  approvals?: ApprovalRecord[]
   /** 受理通过并建档后回填的档案编号，未建档为 null */
   fileNo: string | null
   timeline: ApplicationTimelineEntry[]
@@ -372,11 +381,49 @@ export interface StaffApplicationQuery extends ListQuery {
   status?: ApplicationStatus
 }
 
-export type ApplicationDecisionAction = "start_review" | "request_supplement" | "approve" | "reject"
+export type ApplicationDecisionAction =
+  | "start_review"
+  | "pass_first_review"
+  | "return_to_first_review"
+  | "request_supplement"
+  | "approve"
+  | "reject"
+
+/** 审核中的审批层级：初审通过后转终审，终审通过才算办结。 */
+export type ApprovalLevel = "first_review" | "final_review"
+
+/** 一条审批意见：哪一级、谁、做了什么决定、写了什么意见。 */
+export interface ApprovalRecord {
+  id: ID
+  /** 受理（start_review）发生在进入审核之前，记为 null */
+  level: ApprovalLevel | null
+  action: ApplicationDecisionAction
+  note: string
+  actorId: ID
+  actorName: string
+  at: ISODateTime
+}
 
 export interface ApplicationDecisionPayload {
   action: ApplicationDecisionAction
   note?: string
+}
+
+/** 申请材料的用途分类，便于核验人员对照清单。 */
+export type ApplicationDocumentCategory = "passport_scan" | "photo" | "supporting" | "other"
+
+/** 申请材料来源：申请人在门户上传，或工作人员在窗口代为扫描上传。 */
+export type ApplicationDocumentSource = "applicant" | "staff"
+
+/** 工作人员视角的申请材料：在附件基础上带核验状态。 */
+export interface ApplicationDocument extends Attachment {
+  applicationId: ID
+  category: ApplicationDocumentCategory
+  source: ApplicationDocumentSource
+  verification: VerificationStatus
+  verificationNote: string
+  verifiedBy: string | null
+  verifiedAt: ISODateTime | null
 }
 
 export interface ReportSummary {

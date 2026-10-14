@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 
 import { PageHeader } from "@/components/page-header"
 import { ApplicationStatusBadge } from "@/components/status-badges"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
@@ -23,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { errorMessage } from "@/lib/api/client"
-import { APPLICATION_STATUS_LABELS, APPLICATION_TYPE_LABELS, countryName } from "@/lib/constants"
+import { APPLICATION_STATUS_LABELS, APPLICATION_TYPE_LABELS, APPROVAL_LEVEL_LABELS, countryName } from "@/lib/constants"
 import { formatRelative } from "@/lib/format"
 import { useStaffApplications } from "@/features/applications/api"
 import type { ApplicationStatus } from "@/types"
@@ -175,7 +176,12 @@ export function ApplicationInbox() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <ApplicationStatusBadge status={application.status} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <ApplicationStatusBadge status={application.status} />
+                      {application.status === "under_review" && application.approvalLevel && (
+                        <Badge variant="outline">{t(APPROVAL_LEVEL_LABELS[application.approvalLevel])}</Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="pr-4 text-right text-muted-foreground">
                     {formatRelative(application.updatedAt, locale)}

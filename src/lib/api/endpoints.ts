@@ -63,6 +63,15 @@ export const endpoints = {
     detail: (id: ID) => `/applications/${id}`,
     /** POST ApplicationDecisionPayload -> Application */
     decision: (id: ID) => `/applications/${id}/decision`,
+    /**
+     * GET -> ApplicationDocument[]；
+     * POST multipart/form-data（字段 files[]、category）-> ApplicationDocument[]，工作人员代传扫描件
+     */
+    documents: (id: ID) => `/applications/${id}/documents`,
+    /** DELETE -> 204（仅工作人员代传、尚未核验的材料） */
+    document: (id: ID, documentId: ID) => `/applications/${id}/documents/${documentId}`,
+    /** PUT VerifyDocumentPayload -> ApplicationDocument */
+    documentVerification: (id: ID, documentId: ID) => `/applications/${id}/documents/${documentId}/verification`,
   },
   /** GET -> ReportSummary */
   reports: "/reports",

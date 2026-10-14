@@ -13,31 +13,35 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { errorMessage } from "@/lib/api/client"
+import { Badge } from "@/components/ui/badge"
 import {
   APPLICATION_TYPE_LABELS,
+  APPROVAL_LEVEL_LABELS,
   DECISION_ACTION_LABELS,
   MARITAL_LABELS,
   SEX_LABELS,
   countryName,
 } from "@/lib/constants"
 import { formatDate } from "@/lib/format"
+import { useAuth } from "@/features/auth/auth-provider"
 import { Can } from "@/features/auth/require-permission"
 import { useStaffApplication } from "@/features/applications/api"
+import { ApplicationDocuments, useUnverifiedDocumentCount } from "@/features/applications/application-documents"
+import { ApprovalHistory, ApprovalProgress } from "@/features/applications/approval-history"
 import { DecisionDialog } from "@/features/applications/decision-dialog"
+import { firstReviewer, isMultiLevel, workflowStep } from "@/features/applications/workflow"
 import { ApplicationTimeline } from "@/features/portal/application-timeline"
-import { AttachmentList } from "@/features/portal/attachment-list"
-import type { Application, ApplicationDecisionAction, ApplicationStatus } from "@/types"
+import type { Application, ApplicationDecisionAction } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
-const ACTIONS: Partial<Record<ApplicationStatus, ApplicationDecisionAction[]>> = {
-  submitted: ["start_review"],
-  supplement_required: ["start_review"],
-  under_review: ["approve", "request_supplement", "reject"],
-}
+/** 这两个决定会让申请继续向前，要求材料已全部核验通过。 */
+const NEEDS_VERIFIED_DOCUMENTS = new Set<ApplicationDecisionAction>(["pass_first_review", "approve"])
 
 export function StaffApplicationDetail({ id }: { id: string }) {
   const t = useT()
+  const { user } = useAuth()
   const { data, isPending, isError, error } = useStaffApplication(id)
+  const unverified = useUnverifiedDocumentCount(id)
   const [action, setAction] = useState<ApplicationDecisionAction | null>(null)
 
   if (isPending) {
@@ -65,7 +69,11 @@ export function StaffApplicationDetail({ id }: { id: string }) {
     )
   }
 
-  const actions = ACTIONS[data.status] ?? []
+  const multiLevel = isMultiLevel(data)
+  const step = workflowStep(data)
+  const reviewer = step.level === "final_review" ? firstReviewer(data) : null
+  // 初审人不能终审自己初审过的申请
+  const selfReview = !!reviewer && !!user && reviewer.id === user.id
 
   return (
     <>
@@ -80,14 +88,15 @@ export function StaffApplicationDetail({ id }: { id: string }) {
         title={APPLICATION_TYPE_LABELS[data.type]}
         description={<span className="doc-number">{data.applicationNo ?? t("草稿 · 尚未提交")}</span>}
         actions={
-          <Can anyOf="applicant.update">
-            {actions.map((item) => (
+          <Can anyOf={step.permission}>
+            {step.actions.map((item) => (
               <Button
                 key={item}
-                variant={item === "reject" ? "outline" : item === "approve" ? "default" : "outline"}
+                variant={item === "approve" || item === "pass_first_review" ? "default" : "outline"}
+                disabled={selfReview || (NEEDS_VERIFIED_DOCUMENTS.has(item) && !!unverified)}
                 onClick={() => setAction(item)}
               >
-                {DECISION_ACTION_LABELS[item]}
+                {t(DECISION_ACTION_LABELS[item])}
               </Button>
             ))}
           </Can>
@@ -96,6 +105,7 @@ export function StaffApplicationDetail({ id }: { id: string }) {
       >
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <ApplicationStatusBadge status={data.status} />
+          {step.level && <Badge variant="outline">{t("当前：{level}", { level: t(APPROVAL_LEVEL_LABELS[step.level]) })}</Badge>}
           {data.fileNo && (
             <Link href={`/applicants?q=${encodeURIComponent(data.fileNo)}`} className="text-xs text-muted-foreground underline-offset-4 hover:underline">
               {t("档案编号")} <span className="doc-number">{data.fileNo}</span>
@@ -105,14 +115,37 @@ export function StaffApplicationDetail({ id }: { id: string }) {
       </PageHeader>
 
       <StatusNotice application={data} />
+      {selfReview && (
+        <Alert className="mb-6">
+          <CircleAlertIcon />
+          <AlertTitle>{t("需由其他工作人员终审")}</AlertTitle>
+          <AlertDescription>{t("这份申请的初审由你完成，按双人复核要求，终审须交给另一位有终审权限的工作人员。")}</AlertDescription>
+        </Alert>
+      )}
+
+      {!selfReview && !!unverified && step.actions.some((item) => NEEDS_VERIFIED_DOCUMENTS.has(item)) && (
+        <Alert className="mb-6">
+          <CircleAlertIcon />
+          <AlertTitle>{t("还有 {count} 份材料未核验通过", { count: unverified })}</AlertTitle>
+          <AlertDescription>{t("材料全部核验通过后才能作出通过决定；材料有问题时可以要求补件或驳回。")}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="flex flex-col gap-6">
+          {multiLevel && (
+            <Section title={t("审批流程")}>
+              <div className="flex flex-col gap-6">
+                <ApprovalProgress application={data} />
+                <ApprovalHistory records={data.approvals ?? []} />
+              </div>
+            </Section>
+          )}
           <Section title={t("办理进度")}>
             <ApplicationTimeline timeline={data.timeline} />
           </Section>
-          <Section title={t("申请材料（{count}）", { count: data.attachments.length })}>
-            <AttachmentList attachments={data.attachments} emptyHint={t("本次申请尚未上传材料。")} />
+          <Section title={t("申请材料")}>
+            <ApplicationDocuments application={data} />
           </Section>
         </div>
         <div className="flex flex-col gap-6">
