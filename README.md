@@ -47,6 +47,8 @@ pnpm dev
 - 申请人门户：注册 / 登录、五步申请向导与材料上传、我的申请、申请详情与进度时间线、撤回与删除草稿
 
 - 申请受理：工作人员查看申请、开始审核、要求补件、通过建档或驳回；通过且尚未建档时由后端建立档案并回填档案编号
+- 审批工作流：受理 → 初审 → 终审 → 办结的多级审批，初审人不能终审（双人复核），每次决定留存审批意见记录，详见 [docs/approval-workflow.md](docs/approval-workflow.md)
+- 文件上传与核验：上传前校验格式、文件头、大小与份数；工作人员可代传扫描件并逐份标记核验状态，材料全部核验通过才能通过审批，详见 [docs/document-verification.md](docs/document-verification.md)
 - 报表、通知与审计日志：工作台办理概况、页头通知、系统管理中的审计日志
 
 ## 对接后端
@@ -88,6 +90,18 @@ pnpm dev
    | `GET /portal/notifications`、`POST /portal/notifications/:id/read` | 门户通知 |
    | `GET /audit-logs` | 审计日志，分页 |
 
+6. 多级审批与材料核验需要后端配合的接口（前端已接好，后端未支持时自动回退为单级审批和普通附件列表）：
+
+   | 接口 | 说明 |
+   | --- | --- |
+   | `POST /applications/:id/decision` | `action` 新增 `pass_first_review`（初审通过）、`return_to_first_review`（退回初审） |
+   | `GET /applications/:id` | 新增返回 `approvalLevel`（当前审批层级）与 `approvals`（审批意见记录） |
+   | `GET` / `POST /applications/:id/documents` | 申请材料列表 / 工作人员代传扫描件（`multipart/form-data`，字段 `files`、`category`） |
+   | `DELETE /applications/:id/documents/:documentId` | 删除代传且待核验的材料 |
+   | `PUT /applications/:id/documents/:documentId/verification` | `{ verification, note }`，标记核验通过或驳回 |
+
+   新增权限码 `application.review`（初审）、`application.approve`（终审）。完整约定见 `docs/` 下的两份文档。
+
 `src/proxy.ts` 仅根据 `ims_session`（内部）与 `ims_portal_session`（门户）两个 Cookie 做乐观跳转，真正的鉴权必须由后端完成。生产环境建议由后端下发 httpOnly Cookie 取代 localStorage 中的 token。
 
 ## 目录
@@ -101,6 +115,8 @@ src/
   features/<模块>/     各模块的接口、hooks、表单与视图
   components/          布局外壳、通用表单字段、状态徽标、shadcn/ui
   lib/api/             请求客户端与接口清单
+  lib/upload.ts        上传前的格式与大小校验
+docs/                  审批工作流、文件上传与核验的设计说明
 ```
 
 请求客户端按登录域分成 `api`（内部）与 `portalApi`（门户）两个实例，分别读取各自的 token；
