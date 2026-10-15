@@ -68,7 +68,7 @@ export function PortalRegisterForm() {
         )}
 
         <FieldSet>
-          <FieldLegend>{t("本人信息")}</FieldLegend>
+          <FieldLegend className="mb-4 w-full border-b pb-2">{t("本人信息")}</FieldLegend>
           <FieldGroup>
             <TextField
               control={form.control}
@@ -86,7 +86,7 @@ export function PortalRegisterForm() {
         </FieldSet>
 
         <FieldSet>
-          <FieldLegend>{t("登录凭据")}</FieldLegend>
+          <FieldLegend className="mb-4 w-full border-b pb-2">{t("登录凭据")}</FieldLegend>
           <FieldGroup>
             <PasswordField
               control={form.control}

@@ -110,7 +110,7 @@ export function ApplicantForm({ applicant }: { applicant?: Applicant }) {
                 >
                   {(Object.keys(SEX_LABELS) as Sex[]).map((sex) => (
                     <ToggleGroupItem key={sex} value={sex} className="px-4">
-                      {SEX_LABELS[sex]}
+                      {t(SEX_LABELS[sex])}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>

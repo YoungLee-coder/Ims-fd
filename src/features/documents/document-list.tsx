@@ -127,7 +127,7 @@ export function DocumentList({ applicant }: { applicant: Applicant }) {
             <AlertDialogDescription>
               {deleting && (
                 <>
-                  {DOCUMENT_TYPE_LABELS[deleting.type]} <span className="doc-number">{deleting.number}</span>{" "}
+                  {t(DOCUMENT_TYPE_LABELS[deleting.type])} <span className="doc-number">{deleting.number}</span>{" "}
                   {t("及其 {count} 个附件将被删除，无法恢复。", { count: deleting.attachments.length })}
                 </>
               )}
@@ -176,7 +176,7 @@ function DocumentRow({
     <li className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:gap-6 sm:p-5">
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="text-sm font-medium">{DOCUMENT_TYPE_LABELS[doc.type]}</span>
+          <span className="text-sm font-medium">{t(DOCUMENT_TYPE_LABELS[doc.type])}</span>
           <span className="doc-number text-base font-semibold">{doc.number}</span>
           <ValidityBadge expiryDate={doc.expiryDate} />
           <VerificationBadge status={doc.verification} />

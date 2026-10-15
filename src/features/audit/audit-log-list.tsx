@@ -12,10 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { errorMessage } from "@/lib/api/client"
+import { APPLICATION_STATUS_LABELS, DECISION_ACTION_LABELS, USER_STATUS_LABELS } from "@/lib/constants"
 import { formatDateTime } from "@/lib/format"
 import { useAuditLogs } from "@/features/audit/api"
 import type { AuditActorType } from "@/types"
 import { useT } from "@/lib/i18n/client"
+import type { TFunction } from "@/lib/i18n/translate"
 
 const PAGE_SIZE = 12
 
@@ -43,6 +45,19 @@ const ACTION_LABELS: Record<string, string> = {
   "document.verify": "核验证件",
   "application.submit": "提交申请",
   "application.decision": "审批申请",
+}
+
+/** 后端写入 detail 时直接使用了动作与状态代码（如 reject、rejected），展示前换成对应文案。 */
+const DETAIL_TOKENS: Record<string, string> = {
+  ...APPLICATION_STATUS_LABELS,
+  ...USER_STATUS_LABELS,
+  ...DECISION_ACTION_LABELS,
+}
+
+function humanizeDetail(detail: string, t: TFunction) {
+  return detail.replace(/\b[a-z]+(?:_[a-z]+)*\b/g, (token) =>
+    Object.hasOwn(DETAIL_TOKENS, token) ? t(DETAIL_TOKENS[token]) : token
+  )
 }
 
 export function AuditLogList() {
@@ -127,7 +142,7 @@ export function AuditLogList() {
                   <TableCell>
                     <Badge variant="outline">{ACTION_LABELS[log.action] ? t(ACTION_LABELS[log.action]) : log.action}</Badge>
                   </TableCell>
-                  <TableCell className="pr-4">{log.detail}</TableCell>
+                  <TableCell className="pr-4">{humanizeDetail(log.detail, t)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

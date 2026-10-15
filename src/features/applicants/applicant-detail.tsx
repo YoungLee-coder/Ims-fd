@@ -157,7 +157,7 @@ function DataPage({ applicant }: { applicant: Applicant }) {
               [t("档案编号"), <span key="f" className="doc-number">{applicant.fileNo}</span>],
               [t("国籍"), `${countryName(applicant.nationality, t)} · ${applicant.nationality}`],
               [t("出生日期"), <span key="d" className="tabular-nums">{formatDate(applicant.dateOfBirth)}</span>],
-              [t("性别"), SEX_LABELS[applicant.sex]],
+              [t("性别"), t(SEX_LABELS[applicant.sex])],
             ].map(([label, value]) => (
               <div key={label as string} className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -295,7 +295,7 @@ function ProfileView({ applicant: a }: { applicant: Applicant }) {
           [t("姓（Surname）"), a.surname],
           [t("名（Given names）"), a.givenNames],
           [t("原文姓名"), a.nativeName],
-          [t("性别"), SEX_LABELS[a.sex]],
+          [t("性别"), t(SEX_LABELS[a.sex])],
           [t("出生日期"), formatDate(a.dateOfBirth)],
           [t("出生地"), a.placeOfBirth],
           [t("国籍"), `${countryName(a.nationality, t)} (${a.nationality})`],
@@ -312,7 +312,7 @@ function ProfileView({ applicant: a }: { applicant: Applicant }) {
       <InfoSection
         title={t("其他信息")}
         rows={[
-          [t("婚姻状况"), MARITAL_LABELS[a.maritalStatus]],
+          [t("婚姻状况"), t(MARITAL_LABELS[a.maritalStatus])],
           [t("职业"), a.occupation],
           [t("备注"), a.remarks],
         ]}

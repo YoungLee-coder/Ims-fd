@@ -100,6 +100,8 @@ export function DashboardView() {
                     <span
                       className={cn(
                         "text-3xl leading-9 font-semibold tabular-nums",
+                        // 0 不需要处理，弱化后有数字的格子一眼就能被看到
+                        stat.value === 0 && "text-muted-foreground/70",
                         stat.tone === "warning" && !!stat.value && "text-[color-mix(in_oklch,var(--warning),black_25%)]"
                       )}
                     >
@@ -222,7 +224,7 @@ export function DashboardView() {
                           <span className="doc-number text-xs text-muted-foreground">{doc.fileNo}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{DOCUMENT_TYPE_LABELS[doc.type]}</TableCell>
+                      <TableCell>{t(DOCUMENT_TYPE_LABELS[doc.type])}</TableCell>
                       <TableCell className="doc-number">{doc.number}</TableCell>
                       <TableCell className="tabular-nums">{formatDate(doc.expiryDate)}</TableCell>
                       <TableCell>

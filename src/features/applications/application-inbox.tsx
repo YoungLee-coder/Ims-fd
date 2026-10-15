@@ -139,8 +139,8 @@ export function ApplicationInbox() {
               <TableRow>
                 <TableHead className="pl-4">{t("申请人")}</TableHead>
                 <TableHead>{t("申请编号")}</TableHead>
-                <TableHead>{t("类型")}</TableHead>
-                <TableHead>{t("国籍")}</TableHead>
+                <TableHead className="max-lg:hidden">{t("类型")}</TableHead>
+                <TableHead className="max-md:hidden">{t("国籍")}</TableHead>
                 <TableHead>{t("状态")}</TableHead>
                 <TableHead className="pr-4 text-right">{t("最近更新")}</TableHead>
               </TableRow>
@@ -164,8 +164,8 @@ export function ApplicationInbox() {
                   <TableCell className="doc-number text-muted-foreground">
                     {application.applicationNo ?? t("草稿")}
                   </TableCell>
-                  <TableCell>{APPLICATION_TYPE_LABELS[application.type]}</TableCell>
-                  <TableCell>
+                  <TableCell className="max-lg:hidden">{t(APPLICATION_TYPE_LABELS[application.type])}</TableCell>
+                  <TableCell className="max-md:hidden">
                     {application.nationality ? (
                       <>
                         <span className="doc-number mr-1.5 text-xs text-muted-foreground">{application.nationality}</span>
