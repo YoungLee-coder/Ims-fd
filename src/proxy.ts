@@ -23,6 +23,11 @@ function matches(pathname: string, paths: string[]) {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
+  // 站点根路径默认进入申请人门户；职工请直接访问 /login 或 /dashboard
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL(PORTAL_BASE_PATH, request.url))
+  }
+
   if (isUnder(pathname, PORTAL_BASE_PATH)) {
     const hasPortalSession = request.cookies.has(PORTAL_SESSION_COOKIE)
     const isPortalPublic = matches(pathname, PORTAL_PUBLIC_PATHS)
@@ -45,11 +50,11 @@ export function proxy(request: NextRequest) {
 
   if (!hasSession && !isPublic) {
     const url = new URL("/login", request.url)
-    if (pathname !== "/") url.searchParams.set("next", pathname + search)
+    url.searchParams.set("next", pathname + search)
     return NextResponse.redirect(url)
   }
 
-  if (hasSession && (isPublic || pathname === "/")) {
+  if (hasSession && isPublic) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
