@@ -89,7 +89,7 @@ export function RegisterForm() {
         )}
 
         <FieldSet>
-          <FieldLegend>{t("身份信息")}</FieldLegend>
+          <FieldLegend className="mb-4 w-full border-b pb-2">{t("身份信息")}</FieldLegend>
           <FieldGroup>
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField control={form.control} name="fullName" label={t("姓名")} required autoComplete="name" />
@@ -110,7 +110,7 @@ export function RegisterForm() {
         </FieldSet>
 
         <FieldSet>
-          <FieldLegend>{t("登录凭据")}</FieldLegend>
+          <FieldLegend className="mb-4 w-full border-b pb-2">{t("登录凭据")}</FieldLegend>
           <FieldGroup>
             <TextField
               control={form.control}

@@ -356,7 +356,7 @@ function TypeStep({ form }: StepProps) {
                   >
                     <RadioGroupItem value={type} className="mt-0.5" />
                     <span className="flex flex-col gap-1">
-                      <span className="text-sm font-medium">{APPLICATION_TYPE_LABELS[type]}</span>
+                      <span className="text-sm font-medium">{t(APPLICATION_TYPE_LABELS[type])}</span>
                       <span className="text-xs leading-relaxed text-muted-foreground">
                         {APPLICATION_TYPE_HINTS[type]}
                       </span>
@@ -442,7 +442,7 @@ function PersonalStep({ form }: StepProps) {
                 >
                   {(Object.keys(SEX_LABELS) as Sex[]).map((sex) => (
                     <ToggleGroupItem key={sex} value={sex} className="px-4">
-                      {SEX_LABELS[sex]}
+                      {t(SEX_LABELS[sex])}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
@@ -628,15 +628,15 @@ function ReviewStep({
 }) {
   const t = useT()
   const rows: [string, React.ReactNode][] = [
-    [t("申请类型"), APPLICATION_TYPE_LABELS[values.type]],
+    [t("申请类型"), t(APPLICATION_TYPE_LABELS[values.type])],
     [t("计划入境日期"), values.intendedArrivalDate ? formatDate(values.intendedArrivalDate) : "—"],
     [t("拟停留天数"), values.intendedStayDays ? t("{intendedStayDays} 天", { intendedStayDays: values.intendedStayDays }) : "—"],
     [t("姓名（拉丁）"), `${values.surname} ${values.givenNames}`.trim() || "—"],
-    [t("性别"), SEX_LABELS[values.sex]],
+    [t("性别"), t(SEX_LABELS[values.sex])],
     [t("出生日期"), values.dateOfBirth ? formatDate(values.dateOfBirth) : "—"],
     [t("出生地"), values.placeOfBirth || "—"],
     [t("国籍"), values.nationality || "—"],
-    [t("婚姻状况"), MARITAL_LABELS[values.maritalStatus]],
+    [t("婚姻状况"), t(MARITAL_LABELS[values.maritalStatus])],
     [t("联系电话"), values.phone || "—"],
     [t("电子邮箱"), values.email || "—"],
     [t("护照号码"), <span key="pn" className="doc-number">{values.passportNumber || "—"}</span>],

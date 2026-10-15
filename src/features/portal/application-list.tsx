@@ -102,7 +102,7 @@ function ApplicationCard({ application }: { application: Application }) {
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <ApplicationStatusBadge status={status} />
-          <span className="font-medium">{APPLICATION_TYPE_LABELS[type]}</span>
+          <span className="font-medium">{t(APPLICATION_TYPE_LABELS[type])}</span>
           {applicationNo && <span className="doc-number text-xs text-muted-foreground">{applicationNo}</span>}
           {isDraft && <span className="text-xs text-muted-foreground">{t("尚未提交")}</span>}
         </div>

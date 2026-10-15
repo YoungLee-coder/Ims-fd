@@ -218,7 +218,7 @@ export function ApplicantList() {
                     </Link>
                   </TableCell>
                   <TableCell className="doc-number text-muted-foreground">{a.fileNo}</TableCell>
-                  <TableCell>{SEX_LABELS[a.sex]}</TableCell>
+                  <TableCell>{t(SEX_LABELS[a.sex])}</TableCell>
                   <TableCell className="tabular-nums">{formatDate(a.dateOfBirth)}</TableCell>
                   <TableCell>
                     <span className="doc-number mr-1.5 text-xs text-muted-foreground">{a.nationality}</span>

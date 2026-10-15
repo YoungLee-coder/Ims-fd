@@ -79,7 +79,7 @@ export function ApplicationDetail({ id }: { id: string }) {
       </Button>
 
       <PageHeader
-        title={APPLICATION_TYPE_LABELS[data.type]}
+        title={t(APPLICATION_TYPE_LABELS[data.type])}
         description={
           <span className="doc-number">
             {data.applicationNo ?? t("草稿 · 尚未提交")}
@@ -135,18 +135,18 @@ export function ApplicationDetail({ id }: { id: string }) {
                   {data.nativeName}
                 </Field>
               )}
-              <Field label={t("性别")}>{SEX_LABELS[data.sex]}</Field>
+              <Field label={t("性别")}>{t(SEX_LABELS[data.sex])}</Field>
               <Field label={t("出生日期")}>{formatDate(data.dateOfBirth)}</Field>
               <Field label={t("出生地")}>{data.placeOfBirth || "—"}</Field>
               <Field label={t("国籍")}>
                 {data.nationality ? `${countryName(data.nationality, t)} (${data.nationality})` : "—"}
               </Field>
               <Field label={t("婚姻状况")}>
-                {data.maritalStatus ? MARITAL_LABELS[data.maritalStatus] : "—"}
+                {data.maritalStatus ? t(MARITAL_LABELS[data.maritalStatus]) : "—"}
               </Field>
               <Field label={t("职业")}>{data.occupation || "—"}</Field>
               <Field label={t("联系电话")}>{data.phone || "—"}</Field>
-              <Field label={t("电子邮箱")}>{data.email || "—"}</Field>
+              <Field label={t("电子邮箱")} className="col-span-2">{data.email || "—"}</Field>
               <Field label={t("境内地址")} className="col-span-2">
                 {data.address || "—"}
               </Field>
