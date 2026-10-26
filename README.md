@@ -23,6 +23,7 @@ pnpm dev
 | `/portal/applications` | 我的申请：草稿与办理进度 |
 | `/portal/applications/new` | 新建申请（五步向导） |
 | `/portal/applications/:id` | 申请详情与办理进度时间线 |
+| `/portal/notifications` | 通知：申请状态变更、材料核验结果，可开关邮件提醒 |
 
 ### 申请人办事流程
 
@@ -33,6 +34,7 @@ pnpm dev
 3. **提交** → 生成申请编号，状态变为「待受理」，进入受理机关的审核流程。
 4. **查看进度** → 详情页按时间线展示每次状态流转、受理意见与关联档案编号。
 5. **补充或撤回** → 「待补件」时按受理意见补交材料；受理前可自行撤回，草稿可直接删除。
+6. **接收提醒** → 受理、补件、通过、驳回和材料核验驳回都会出现在页头铃铛里，点击直达申请详情；开启邮件提醒后同时发到注册邮箱。
 
 状态机：`draft`（草稿）→ `submitted`（待受理）→ `under_review`（审核中）→ `approved` / `rejected`；
 中途可因材料不齐转 `supplement_required`（待补件），申请人可在受理前转 `withdrawn`（已撤回）。
@@ -49,7 +51,9 @@ pnpm dev
 - 申请受理：工作人员查看申请、开始审核、要求补件、通过建档或驳回；通过且尚未建档时由后端建立档案并回填档案编号
 - 审批工作流：受理 → 初审 → 终审 → 办结的多级审批，初审人不能终审（双人复核），每次决定留存审批意见记录，详见 [docs/approval-workflow.md](docs/approval-workflow.md)
 - 文件上传与核验：上传前校验格式、文件头、大小与份数；工作人员可代传扫描件并逐份标记核验状态，材料全部核验通过才能通过审批，详见 [docs/document-verification.md](docs/document-verification.md)
-- 报表、通知与审计日志：工作台办理概况、页头通知、系统管理中的审计日志
+- 报表与统计（`/reports`，需 `applicant.read`）：按近 7 / 30 / 90 天、今年、全部或自定义范围统计申请量、通过率、平均处理时长、在办与超期，按日或按月的办理趋势、状态分布、按申请类型、审批人工作量，可导出 CSV，详见 [docs/reports.md](docs/reports.md)
+- 通知：页头铃铛显示未读数，点击跳转到相关申请或页面，可全部标为已读；工作人员 `/notifications`、申请人 `/portal/notifications` 查看全部通知并开关邮件提醒，详见 [docs/notifications.md](docs/notifications.md)
+- 审计日志：系统管理中的写操作记录
 
 ## 对接后端
 
@@ -85,9 +89,10 @@ pnpm dev
    | `GET /applications` | 工作人员申请队列，分页，`status`、`keyword` |
    | `GET /applications/:id` | 申请详情 |
    | `POST /applications/:id/decision` | `{ action, note? }`，`action` 为 `start_review` / `request_supplement` / `approve` / `reject` |
-   | `GET /reports` | 申请量、通过率、平均处理天数 |
-   | `GET /notifications`、`POST /notifications/:id/read` | 工作人员通知 |
-   | `GET /portal/notifications`、`POST /portal/notifications/:id/read` | 门户通知 |
+   | `GET /reports?from&to` | 申请量、通过率、平均处理天数、趋势、按类型、审批人工作量、在办与超期 |
+   | `GET /notifications`、`POST /notifications/:id/read`、`POST /notifications/read-all` | 工作人员通知，带 `category` 与 `link` |
+   | `GET` / `PUT /notifications/preferences` | 邮件提醒开关 `{ emailEnabled }` |
+   | `/portal/notifications` 下的同名接口 | 门户通知 |
    | `GET /audit-logs` | 审计日志，分页 |
 
 6. 多级审批与材料核验需要后端配合的接口（前端已接好，后端未支持时自动回退为单级审批和普通附件列表）：
@@ -100,7 +105,9 @@ pnpm dev
    | `DELETE /applications/:id/documents/:documentId` | 删除代传且待核验的材料 |
    | `PUT /applications/:id/documents/:documentId/verification` | `{ verification, note }`，标记核验通过或驳回 |
 
-   新增权限码 `application.review`（初审）、`application.approve`（终审）。完整约定见 `docs/` 下的两份文档。
+   新增权限码 `application.review`（初审）、`application.approve`（终审）。完整约定见 [docs/approval-workflow.md](docs/approval-workflow.md) 和 [docs/document-verification.md](docs/document-verification.md)。
+
+7. 报表与通知的统计口径、通知触发事件和邮件投递约定见 [docs/reports.md](docs/reports.md)、[docs/notifications.md](docs/notifications.md)。
 
 `src/proxy.ts` 仅根据 `ims_session`（内部）与 `ims_portal_session`（门户）两个 Cookie 做乐观跳转，真正的鉴权必须由后端完成。生产环境建议由后端下发 httpOnly Cookie 取代 localStorage 中的 token。
 
@@ -116,7 +123,7 @@ src/
   components/          布局外壳、通用表单字段、状态徽标、shadcn/ui
   lib/api/             请求客户端与接口清单
   lib/upload.ts        上传前的格式与大小校验
-docs/                  审批工作流、文件上传与核验的设计说明
+docs/                  审批工作流、文件上传与核验、报表与统计、通知的使用与设计说明
 ```
 
 请求客户端按登录域分成 `api`（内部）与 `portalApi`（门户）两个实例，分别读取各自的 token；
