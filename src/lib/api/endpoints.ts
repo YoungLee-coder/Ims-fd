@@ -73,13 +73,17 @@ export const endpoints = {
     /** PUT VerifyDocumentPayload -> ApplicationDocument */
     documentVerification: (id: ID, documentId: ID) => `/applications/${id}/documents/${documentId}/verification`,
   },
-  /** GET -> ReportSummary */
+  /** GET ReportQuery -> ReportSummary */
   reports: "/reports",
   notifications: {
-    /** GET -> AppNotification[]（最近 50 则） */
+    /** GET ?unread=true -> AppNotification[]（最近 50 则） */
     list: "/notifications",
     /** POST -> 204 */
     read: (id: ID) => `/notifications/${id}/read`,
+    /** POST -> 204 */
+    readAll: "/notifications/read-all",
+    /** GET -> NotificationPreferences；PUT { emailEnabled } -> NotificationPreferences */
+    preferences: "/notifications/preferences",
   },
   /** GET AuditLogQuery -> Paginated<AuditLog> */
   auditLogs: "/audit-logs",
@@ -115,10 +119,14 @@ export const endpoints = {
       attachment: (id: ID, attachmentId: ID) => `/portal/applications/${id}/attachments/${attachmentId}`,
     },
     notifications: {
-      /** GET -> AppNotification[]（最近 50 则） */
+      /** GET ?unread=true -> AppNotification[]（最近 50 则） */
       list: "/portal/notifications",
       /** POST -> 204 */
       read: (id: ID) => `/portal/notifications/${id}/read`,
+      /** POST -> 204 */
+      readAll: "/portal/notifications/read-all",
+      /** GET -> NotificationPreferences；PUT { emailEnabled } -> NotificationPreferences */
+      preferences: "/portal/notifications/preferences",
     },
   },
 } as const

@@ -22,6 +22,8 @@ import { NotificationBell } from "@/features/notifications/notification-bell"
 
 const LABELS: Record<string, string> = {
   dashboard: "工作台",
+  reports: "报表与统计",
+  notifications: "通知",
   applications: "申请受理",
   applicants: "申请人档案",
   new: "新建档案",

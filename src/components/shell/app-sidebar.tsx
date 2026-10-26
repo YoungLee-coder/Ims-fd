@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  BarChart3Icon,
   ChevronsUpDownIcon,
   ClipboardListIcon,
   FilePlusIcon,
@@ -59,7 +60,10 @@ interface NavItem {
 const NAV: { label: string; items: NavItem[] }[] = [
   {
     label: "概览",
-    items: [{ title: "工作台", href: "/dashboard", icon: LayoutDashboardIcon }],
+    items: [
+      { title: "工作台", href: "/dashboard", icon: LayoutDashboardIcon },
+      { title: "报表与统计", href: "/reports", icon: BarChart3Icon, anyOf: ["applicant.read"] },
+    ],
   },
   {
     label: "档案管理",
