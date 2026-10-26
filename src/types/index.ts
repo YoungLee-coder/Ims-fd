@@ -426,22 +426,79 @@ export interface ApplicationDocument extends Attachment {
   verifiedAt: ISODateTime | null
 }
 
+export interface ReportQuery {
+  /** 统计起止日期（yyyy-MM-dd，含当天）；不传时从最早一份申请统计到今天 */
+  from?: ISODate
+  to?: ISODate
+}
+
+export interface ReportTrendPoint {
+  /** 按日为 yyyy-MM-dd，按月为 yyyy-MM */
+  period: string
+  submitted: number
+  approved: number
+  rejected: number
+}
+
+export interface ReportTypeRow {
+  type: ApplicationType
+  total: number
+  approved: number
+  rejected: number
+  approvalRate: number | null
+  averageProcessingDays: number | null
+}
+
+export interface ReportReviewerRow {
+  actorId: ID
+  actorName: string
+  /** 统计范围内作出的审批决定数（含受理、初审、退回等） */
+  decisions: number
+  approved: number
+  rejected: number
+}
+
+/** 申请量与状态分布按申请日期（提交日，草稿为创建日）落在统计范围内的申请计算。 */
 export interface ReportSummary {
+  range: { from: ISODate; to: ISODate }
+  /** 统计范围不超过 62 天按日汇总，否则按月 */
+  granularity: "day" | "month"
   applicationTotal: number
+  submittedTotal: number
+  approvedTotal: number
+  rejectedTotal: number
   /** 已通过 /（已通过 + 已驳回）；尚无终态申请时为 null */
   approvalRate: number | null
   /** 从提交到通过或驳回的平均天数；尚无终态申请时为 null */
   averageProcessingDays: number | null
   byStatus: Partial<Record<ApplicationStatus, number>>
   byType: Partial<Record<ApplicationType, number>>
+  types: ReportTypeRow[]
+  /** 提交量按提交日、通过与驳回按办结日归入各区间 */
+  trend: ReportTrendPoint[]
+  reviewers: ReportReviewerRow[]
+  /** 当前在办申请快照，不受统计范围影响 */
+  backlog: { total: number; overdue: number; slaDays: number }
+  generatedAt: ISODateTime
 }
+
+export type NotificationCategory = "application" | "document" | "account" | "system"
 
 export interface AppNotification {
   id: ID
   title: string
   body: string
+  category: NotificationCategory
+  /** 站内跳转路径，例如 /applications/ap-001；没有相关页面时为 null */
+  link: string | null
   readAt: ISODateTime | null
   createdAt: ISODateTime
+}
+
+export interface NotificationPreferences {
+  emailEnabled: boolean
+  /** 接收邮件提醒的地址，即账号邮箱 */
+  email: string
 }
 
 export type AuditActorType = "staff" | "portal" | "system"
