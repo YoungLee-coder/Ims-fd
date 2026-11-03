@@ -358,7 +358,7 @@ function TypeStep({ form }: StepProps) {
                     <span className="flex flex-col gap-1">
                       <span className="text-sm font-medium">{t(APPLICATION_TYPE_LABELS[type])}</span>
                       <span className="text-xs leading-relaxed text-muted-foreground">
-                        {APPLICATION_TYPE_HINTS[type]}
+                        {t(APPLICATION_TYPE_HINTS[type])}
                       </span>
                     </span>
                   </Label>

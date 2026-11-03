@@ -48,12 +48,12 @@ export const APPLICATION_TYPES = [
 const today = () => format(new Date(), "yyyy-MM-dd")
 
 /** 姓名需与护照机读区一致，故只接受拉丁字母 */
-const latinName = (label: string) =>
+const latinName = (required: string, tooLong: string) =>
   z
     .string()
     .trim()
-    .min(1, `请输入${label}`)
-    .max(39, `${label}最多 39 个字符`)
+    .min(1, required)
+    .max(39, tooLong)
     .regex(/^[A-Za-z][A-Za-z\s'-]*$/, "请按护照机读区填写拉丁字母")
 
 export const applicationSchema = z
@@ -69,8 +69,8 @@ export const applicationSchema = z
       .refine((v) => Number(v) >= 1 && Number(v) <= 3650, "停留天数需在 1–3650 之间"),
 
     /* 个人信息 */
-    surname: latinName("姓"),
-    givenNames: latinName("名"),
+    surname: latinName("请输入姓", "姓最多 39 个字符"),
+    givenNames: latinName("请输入名", "名最多 39 个字符"),
     nativeName: z.string().trim().max(60, "最多 60 个字符"),
     sex: z.enum(["M", "F", "X"], { error: "请选择性别" }),
     dateOfBirth: z.string().min(1, "请选择出生日期"),
