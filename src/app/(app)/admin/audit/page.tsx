@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
 import { AuditLogList } from "@/features/audit/audit-log-list"
+import { AUDIT_PERMISSIONS } from "@/features/audit/labels"
 import { RequirePermission } from "@/features/auth/require-permission"
 import { getT } from "@/lib/i18n/server"
 
@@ -11,8 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function AuditPage() {
   return (
-    <RequirePermission anyOf={["user.read", "role.read"]}>
-      <AuditLogList />
+    <RequirePermission anyOf={AUDIT_PERMISSIONS}>
+      <Suspense>
+        <AuditLogList />
+      </Suspense>
     </RequirePermission>
   )
 }

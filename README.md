@@ -53,7 +53,7 @@ pnpm dev
 - 文件上传与核验：上传前校验格式、文件头、大小与份数；工作人员可代传扫描件并逐份标记核验状态，材料全部核验通过才能通过审批，详见 [docs/document-verification.md](docs/document-verification.md)
 - 报表与统计（`/reports`，需 `applicant.read`）：按近 7 / 30 / 90 天、今年、全部或自定义范围统计申请量、通过率、平均处理时长、在办与超期，按日或按月的办理趋势、状态分布、按申请类型、审批人工作量，可导出 CSV，详见 [docs/reports.md](docs/reports.md)
 - 通知：页头铃铛显示未读数，点击跳转到相关申请或页面，可全部标为已读；工作人员 `/notifications`、申请人 `/portal/notifications` 查看全部通知并开关邮件提醒，详见 [docs/notifications.md](docs/notifications.md)
-- 审计日志：系统管理中的写操作记录
+- 审计日志（`/admin/audit`，需 `user.read` 或 `role.read`）：记录谁在何时对什么对象做了什么操作，可按关键词、操作人类型、动作、日期范围和对象筛选，查看单条详情并跳转到对应档案或申请，按筛选条件导出 CSV；档案详情与申请详情里可直接查看该对象的操作记录，详见 [docs/audit-log.md](docs/audit-log.md)
 
 ## 对接后端
 
@@ -93,7 +93,7 @@ pnpm dev
    | `GET /notifications`、`POST /notifications/:id/read`、`POST /notifications/read-all` | 工作人员通知，带 `category` 与 `link` |
    | `GET` / `PUT /notifications/preferences` | 邮件提醒开关 `{ emailEnabled }` |
    | `/portal/notifications` 下的同名接口 | 门户通知 |
-   | `GET /audit-logs` | 审计日志，分页 |
+   | `GET /audit-logs` | 审计日志，分页；`keyword`、`actorType`、`action`、`resourceType`、`resourceId`、`from`、`to`（后端未支持筛选时前端会提示） |
 
 6. 多级审批与材料核验需要后端配合的接口（前端已接好，后端未支持时自动回退为单级审批和普通附件列表）：
 
@@ -107,7 +107,7 @@ pnpm dev
 
    新增权限码 `application.review`（初审）、`application.approve`（终审）。完整约定见 [docs/approval-workflow.md](docs/approval-workflow.md) 和 [docs/document-verification.md](docs/document-verification.md)。
 
-7. 报表与通知的统计口径、通知触发事件和邮件投递约定见 [docs/reports.md](docs/reports.md)、[docs/notifications.md](docs/notifications.md)。
+7. 报表与通知的统计口径、通知触发事件和邮件投递约定见 [docs/reports.md](docs/reports.md)、[docs/notifications.md](docs/notifications.md)；审计日志的动作清单与只追加要求见 [docs/audit-log.md](docs/audit-log.md)。
 
 `src/proxy.ts` 仅根据 `ims_session`（内部）与 `ims_portal_session`（门户）两个 Cookie 做乐观跳转，真正的鉴权必须由后端完成。生产环境建议由后端下发 httpOnly Cookie 取代 localStorage 中的 token。
 
@@ -123,7 +123,8 @@ src/
   components/          布局外壳、通用表单字段、状态徽标、shadcn/ui
   lib/api/             请求客户端与接口清单
   lib/upload.ts        上传前的格式与大小校验
-docs/                  审批工作流、文件上传与核验、报表与统计、通知的使用与设计说明
+  lib/csv.ts           浏览器端生成并下载 CSV（报表、审计日志共用）
+docs/                  审批工作流、文件上传与核验、报表与统计、通知、审计日志的使用与设计说明
 ```
 
 请求客户端按登录域分成 `api`（内部）与 `portalApi`（门户）两个实例，分别读取各自的 token；

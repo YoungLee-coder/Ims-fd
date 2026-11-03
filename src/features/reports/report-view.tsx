@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { errorMessage } from "@/lib/api/client"
 import { APPLICATION_STATUS_LABELS, APPLICATION_TYPE_LABELS } from "@/lib/constants"
+import { downloadCsv, type CsvValue } from "@/lib/csv"
 import { formatDateTime } from "@/lib/format"
 import { useT } from "@/lib/i18n/client"
 import type { TFunction } from "@/lib/i18n/translate"
@@ -88,7 +89,7 @@ export function ReportView() {
         title={t("报表与统计")}
         description={t("按申请日期统计申请量、通过率和平均处理时长；在办与超期为当前实时数据。")}
         actions={
-          <Button variant="outline" disabled={!data} onClick={() => data && downloadCsv(data, t)}>
+          <Button variant="outline" disabled={!data} onClick={() => data && exportCsv(data, t)}>
             <DownloadIcon data-icon="inline-start" />
             {t("导出 CSV")}
           </Button>
@@ -553,13 +554,8 @@ function TypeSection({ data }: { data?: ReportSummary }) {
 
 /* ---------- 导出 ---------- */
 
-function csvCell(value: string | number | null) {
-  const text = value == null ? "" : String(value)
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
-}
-
-function downloadCsv(data: ReportSummary, t: TFunction) {
-  const lines: (string | number | null)[][] = [
+function exportCsv(data: ReportSummary, t: TFunction) {
+  const lines: CsvValue[][] = [
     [t("统计范围"), `${data.range.from} ~ ${data.range.to}`],
     [t("申请量"), data.applicationTotal],
     [t("通过率"), percent(data.approvalRate)],
@@ -579,12 +575,5 @@ function downloadCsv(data: ReportSummary, t: TFunction) {
     [t("区间"), t("提交量"), t("已通过"), t("已驳回")],
     ...data.trend.map((p) => [p.period, p.submitted, p.approved, p.rejected]),
   ]
-  // 带 BOM，Excel 直接打开不乱码
-  const csv = "﻿" + lines.map((line) => line.map(csvCell).join(",")).join("\r\n")
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
-  const link = document.createElement("a")
-  link.href = url
-  link.download = `report-${data.range.from}-${data.range.to}.csv`
-  link.click()
-  URL.revokeObjectURL(url)
+  downloadCsv(lines, `report-${data.range.from}-${data.range.to}.csv`)
 }

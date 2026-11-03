@@ -36,11 +36,13 @@ import { useAuth } from "@/features/auth/auth-provider"
 import { Can } from "@/features/auth/require-permission"
 import { useApplicant, useDeleteApplicant, useSaveApplicant } from "@/features/applicants/api"
 import { toFormValues, toPayload, type ApplicantFormValues } from "@/features/applicants/schema"
+import { AuditTrail } from "@/features/audit/audit-trail"
+import { AUDIT_PERMISSIONS } from "@/features/audit/labels"
 import { DocumentList } from "@/features/documents/document-list"
 import type { Applicant } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
-type Tab = "profile" | "documents"
+type Tab = "profile" | "documents" | "history"
 
 export function ApplicantDetail({ id }: { id: string }) {
   const t = useT()
@@ -49,7 +51,13 @@ export function ApplicantDetail({ id }: { id: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const tab: Tab = searchParams.get("tab") === "documents" && can("document.read") ? "documents" : "profile"
+  const requestedTab = searchParams.get("tab")
+  const tab: Tab =
+    requestedTab === "documents" && can("document.read")
+      ? "documents"
+      : requestedTab === "history" && can(AUDIT_PERMISSIONS)
+        ? "history"
+        : "profile"
 
   if (isPending) {
     return (
@@ -109,6 +117,11 @@ export function ApplicantDetail({ id }: { id: string }) {
                 <span className="tabular-nums text-muted-foreground">{applicant.documentCount}</span>
               </TabsTrigger>
             </Can>
+            <Can anyOf={AUDIT_PERMISSIONS}>
+              <TabsTrigger value="history" className="px-3">
+                {t("操作记录")}
+              </TabsTrigger>
+            </Can>
           </TabsList>
         </div>
         <TabsContent value="profile">
@@ -117,6 +130,11 @@ export function ApplicantDetail({ id }: { id: string }) {
         <Can anyOf="document.read">
           <TabsContent value="documents">
             <DocumentList applicant={applicant} />
+          </TabsContent>
+        </Can>
+        <Can anyOf={AUDIT_PERMISSIONS}>
+          <TabsContent value="history">
+            <AuditTrail resourceType="applicant" resourceId={applicant.id} limit={20} />
           </TabsContent>
         </Can>
       </Tabs>
