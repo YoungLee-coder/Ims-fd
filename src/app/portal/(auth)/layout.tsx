@@ -2,9 +2,9 @@ import Link from "next/link"
 
 import { AgencyMark } from "@/components/brand"
 import { PortalFooter } from "@/components/portal/portal-header"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { LocaleSwitcher } from "@/components/locale-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { appConfig } from "@/lib/config"
 import { getT } from "@/lib/i18n/server"
 
@@ -26,15 +26,13 @@ export default async function PortalAuthLayout({ children }: { children: React.R
           </Link>
           <div className="ml-auto flex items-center gap-1">
             <LocaleSwitcher />
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">{t("工作人员登录")}</Link>
-            </Button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
       <main id="main-content" className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
-        <Card className="w-full max-w-lg">
+        <Card className="w-full max-w-lg has-data-[layout=wide]:max-w-4xl md:has-data-[layout=wide]:[--card-spacing:--spacing(7)]">
           <CardContent className="pt-2">{children}</CardContent>
         </Card>
       </main>

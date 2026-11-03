@@ -189,7 +189,7 @@ function Figure({
         <span
           className={cn(
             "text-3xl leading-9 font-semibold tabular-nums",
-            tone === "warning" && "text-[color-mix(in_oklch,var(--warning),black_25%)]"
+            tone === "warning" && "text-[color-mix(in_oklch,var(--warning),black_25%)] dark:text-warning"
           )}
         >
           {value}
@@ -227,7 +227,7 @@ function KeyFigures({ data }: { data?: ReportSummary }) {
           hint={
             data &&
             (data.backlog.overdue ? (
-              <Link href="/applications?status=under_review" className="inline-flex items-center gap-1 text-[color-mix(in_oklch,var(--warning),black_25%)] underline-offset-4 hover:underline">
+              <Link href="/applications?status=under_review" className="inline-flex items-center gap-1 text-[color-mix(in_oklch,var(--warning),black_25%)] dark:text-warning underline-offset-4 hover:underline">
                 <AlertTriangleIcon className="size-3.5" />
                 {t("{count} 份超过 {days} 天未办结", { count: data.backlog.overdue, days: data.backlog.slaDays })}
               </Link>
@@ -423,7 +423,7 @@ function StatusSection({ data }: { data?: ReportSummary }) {
   return (
     <section aria-labelledby="status-title" className="flex flex-col gap-4">
       <SectionTitle id="status-title" title={t("状态分布")} description={t("统计范围内申请的当前状态。")} />
-      <div className="rounded-lg border bg-card p-4 sm:p-5">
+      <div className="flex-1 rounded-lg border bg-card p-4 sm:p-5">
         {!data ? (
           <div className="flex flex-col gap-3">
             {STATUS_ORDER.map((s) => (
@@ -459,7 +459,7 @@ function ReviewerSection({ data }: { data?: ReportSummary }) {
   return (
     <section aria-labelledby="reviewer-title" className="flex flex-col gap-4">
       <SectionTitle id="reviewer-title" title={t("审批工作量")} description={t("统计范围内每位工作人员作出的审批决定。")} />
-      <div className="overflow-hidden rounded-lg border bg-card">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-lg border bg-card">
         {!data ? (
           <div className="flex flex-col gap-3 p-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -467,7 +467,7 @@ function ReviewerSection({ data }: { data?: ReportSummary }) {
             ))}
           </div>
         ) : !data.reviewers.length ? (
-          <Empty className="py-10">
+          <Empty className="flex-1 py-10">
             <EmptyHeader>
               <EmptyTitle>{t("暂无审批记录")}</EmptyTitle>
               <EmptyDescription>{t("该范围内还没有工作人员作出审批决定。")}</EmptyDescription>

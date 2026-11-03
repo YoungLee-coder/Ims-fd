@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale()
   const t = await getT()
   return (
-    <html lang={locale} className={`${publicSans.variable} ${jetbrainsMono.variable} h-full`}>
+    <html lang={locale} suppressHydrationWarning className={`${publicSans.variable} ${jetbrainsMono.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main-content"

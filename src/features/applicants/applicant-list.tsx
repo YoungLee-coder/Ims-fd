@@ -90,8 +90,8 @@ export function ApplicantList() {
         }
       />
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <InputGroup className="sm:max-w-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <InputGroup className="w-full sm:max-w-sm">
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>
@@ -104,7 +104,7 @@ export function ApplicantList() {
           />
         </InputGroup>
         <Select value={status ?? ALL} onValueChange={(v) => setParams({ status: v === ALL ? undefined : v })}>
-          <SelectTrigger className="sm:w-36" aria-label={t("档案状态")}>
+          <SelectTrigger className="flex-1 sm:w-36 sm:flex-none" aria-label={t("档案状态")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +115,7 @@ export function ApplicantList() {
             <SelectGroup>
               {Object.entries(APPLICANT_STATUS_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -125,7 +125,7 @@ export function ApplicantList() {
           value={nationality ?? ALL}
           onValueChange={(v) => setParams({ nationality: v === ALL ? undefined : v })}
         >
-          <SelectTrigger className="sm:w-40" aria-label={t("国籍")}>
+          <SelectTrigger className="flex-1 sm:w-40 sm:flex-none" aria-label={t("国籍")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -193,12 +193,12 @@ export function ApplicantList() {
               <TableRow>
                 <TableHead className="pl-4">{t("姓名")}</TableHead>
                 <TableHead>{t("档案编号")}</TableHead>
-                <TableHead>{t("性别")}</TableHead>
-                <TableHead>{t("出生日期")}</TableHead>
-                <TableHead>{t("国籍")}</TableHead>
-                <TableHead>{t("证件")}</TableHead>
-                <TableHead>{t("状态")}</TableHead>
-                <TableHead className="pr-4 text-right">{t("最近更新")}</TableHead>
+                <TableHead className="max-lg:hidden">{t("性别")}</TableHead>
+                <TableHead className="max-md:hidden">{t("出生日期")}</TableHead>
+                <TableHead className="max-md:hidden">{t("国籍")}</TableHead>
+                <TableHead className="max-sm:hidden">{t("证件")}</TableHead>
+                <TableHead className="max-sm:pr-4">{t("状态")}</TableHead>
+                <TableHead className="pr-4 text-right max-sm:hidden">{t("最近更新")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,13 +218,13 @@ export function ApplicantList() {
                     </Link>
                   </TableCell>
                   <TableCell className="doc-number text-muted-foreground">{a.fileNo}</TableCell>
-                  <TableCell>{t(SEX_LABELS[a.sex])}</TableCell>
-                  <TableCell className="tabular-nums">{formatDate(a.dateOfBirth)}</TableCell>
-                  <TableCell>
+                  <TableCell className="max-lg:hidden">{t(SEX_LABELS[a.sex])}</TableCell>
+                  <TableCell className="tabular-nums max-md:hidden">{formatDate(a.dateOfBirth)}</TableCell>
+                  <TableCell className="max-md:hidden">
                     <span className="doc-number mr-1.5 text-xs text-muted-foreground">{a.nationality}</span>
                     {countryName(a.nationality, t)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:hidden">
                     <span className="inline-flex items-center gap-1.5 tabular-nums">
                       {a.documentCount}
                       {a.attentionCount > 0 && (
@@ -240,10 +240,10 @@ export function ApplicantList() {
                       )}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:pr-4">
                     <ApplicantStatusBadge status={a.status} />
                   </TableCell>
-                  <TableCell className="pr-4 text-right text-muted-foreground">{formatRelative(a.updatedAt, locale)}</TableCell>
+                  <TableCell className="pr-4 text-right text-muted-foreground max-sm:hidden">{formatRelative(a.updatedAt, locale)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

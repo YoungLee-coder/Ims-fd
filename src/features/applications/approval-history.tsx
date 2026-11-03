@@ -1,12 +1,12 @@
 "use client"
 
-import { CheckIcon } from "lucide-react"
+import { CheckIcon, XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { APPROVAL_LEVEL_LABELS, DECISION_ACTION_LABELS } from "@/lib/constants"
+import { APPLICATION_STATUS_LABELS, APPROVAL_LEVEL_LABELS, DECISION_ACTION_LABELS } from "@/lib/constants"
 import { formatDateTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { progressStage, type ProgressStage } from "@/features/applications/workflow"
+import { progressStage, stoppedStage, type ProgressStage } from "@/features/applications/workflow"
 import type { Application, ApplicationDecisionAction, ApprovalRecord } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
@@ -28,30 +28,51 @@ const ACTION_VARIANT: Record<ApplicationDecisionAction, BadgeVariant> = {
   reject: "destructive",
 }
 
-/** 受理 → 初审 → 终审 → 办结 四格进度。 */
+/**
+ * 受理 → 初审 → 终审 → 办结 四格进度。
+ * 驳回 / 撤回的申请标出停下的那一格，之后的格子留空，最后一格写明结果，不再显示成全部完成。
+ */
 export function ApprovalProgress({ application }: { application: Application }) {
   const t = useT()
-  const current = STAGES.findIndex((item) => item.stage === progressStage(application))
+  const stopped = stoppedStage(application)
+  const current = STAGES.findIndex((item) => item.stage === (stopped ?? progressStage(application)))
+  const rejected = application.status === "rejected"
 
   return (
     <ol className="grid grid-cols-4 gap-2" aria-label={t("审批进度")}>
       {STAGES.map((item, index) => {
-        const done = index < current || (item.stage === "done" && index === current)
-        const active = index === current && !done
+        const halted = !!stopped && index === current
+        const done = !halted && (index < current || (!stopped && item.stage === "done" && index === current))
+        const active = !stopped && index === current && !done
+        const outcome = !!stopped && item.stage === "done"
         return (
-          <li key={item.stage} className="flex flex-col gap-2" aria-current={active ? "step" : undefined}>
+          <li key={item.stage} className="flex flex-col gap-2" aria-current={active || halted ? "step" : undefined}>
             <span
               aria-hidden
-              className={cn("h-1.5 rounded-full", done ? "bg-primary" : active ? "bg-primary/50" : "bg-muted")}
+              className={cn(
+                "h-1.5 rounded-full",
+                done
+                  ? "bg-primary"
+                  : active
+                    ? "bg-primary/50"
+                    : halted
+                      ? rejected
+                        ? "bg-destructive"
+                        : "bg-muted-foreground/40"
+                      : "bg-muted"
+              )}
             />
             <span
               className={cn(
                 "flex items-center gap-1 text-xs",
-                done || active ? "font-medium text-foreground" : "text-muted-foreground"
+                done || active ? "font-medium text-foreground" : "text-muted-foreground",
+                halted && "font-medium",
+                halted && rejected && "text-destructive"
               )}
             >
               {done && <CheckIcon className="size-3" />}
-              {t(item.label)}
+              {halted && rejected && <XIcon className="size-3" />}
+              {outcome ? t(APPLICATION_STATUS_LABELS[application.status]) : t(item.label)}
             </span>
           </li>
         )

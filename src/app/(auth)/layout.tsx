@@ -1,5 +1,6 @@
 import { AgencyLockup } from "@/components/brand"
 import { LocaleSwitcher } from "@/components/locale-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { appConfig } from "@/lib/config"
 import { getT } from "@/lib/i18n/server"
 
@@ -12,7 +13,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const t = await getT()
   return (
     <div className="grid min-h-svh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="sticky top-0 hidden h-svh flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex">
+      <aside className="sticky top-0 hidden h-svh flex-col justify-between overflow-hidden bg-brand p-10 text-brand-foreground lg:flex">
         <AgencyLockup />
 
         <div className="flex max-w-md flex-col gap-5">
@@ -33,17 +34,18 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <main id="main-content" className="flex flex-col">
         <header className="flex items-center justify-between border-b px-6 py-4 lg:hidden">
           <AgencyLockup compact className="text-primary" />
-          <LocaleSwitcher />
+          <div className="flex items-center gap-1">
+            <LocaleSwitcher />
+            <ThemeToggle />
+          </div>
         </header>
-        <div className="hidden justify-end px-6 pt-4 sm:px-10 lg:flex">
+        <div className="hidden justify-end gap-1 px-6 pt-4 sm:px-10 lg:flex">
           <LocaleSwitcher />
+          <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
           <div className="w-full max-w-md">{children}</div>
         </div>
-        <footer className="px-6 py-5 text-xs text-muted-foreground sm:px-10">
-          {t("未经授权访问、使用或泄露本系统信息将依法追究责任。")}
-        </footer>
       </main>
     </div>
   )

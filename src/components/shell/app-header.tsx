@@ -17,6 +17,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useApplicant } from "@/features/applicants/api"
 import { useStaffApplication } from "@/features/applications/api"
 import { LocaleSwitcher } from "@/components/locale-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useT } from "@/lib/i18n/client"
 import { NotificationBell } from "@/features/notifications/notification-bell"
 
@@ -92,6 +93,7 @@ export function AppHeader() {
         </BreadcrumbList>
       </Breadcrumb>
       <LocaleSwitcher />
+      <ThemeToggle />
       <NotificationBell realm="staff" />
     </header>
   )

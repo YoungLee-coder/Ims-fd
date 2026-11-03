@@ -10,6 +10,7 @@ export const en: Record<string, string> = {
   "{agency}内部业务系统，仅限授权工作人员使用。": "Internal business system of the {agency}. Authorized staff only.",
   "跳到主要内容": "Skip to main content",
   "切换语言": "Switch language",
+  "切换浅色与深色": "Switch light and dark",
 
   // ---------- 页面标题 / 面包屑 / 导航 ----------
   "审计日志": "Audit log",
@@ -40,10 +41,6 @@ export const en: Record<string, string> = {
   "门户导航": "Portal navigation",
   "申请人服务门户": "Applicant Service Portal",
   "工作人员登录": "Staff sign-in",
-  "工作人员请": "Staff, please",
-  "从内部系统登录": "sign in to the internal system",
-  "本门户仅供申请人本人办理出入境与居留业务，请如实填写并上传真实材料。":
-    "This portal is for applicants to handle their own entry-exit and residence matters. Please provide truthful information and genuine documents.",
   "退出登录": "Sign out",
 
   // ---------- 通用 ----------
@@ -87,8 +84,6 @@ export const en: Record<string, string> = {
   "出入境与居留业务的统一工作台": "One workspace for entry-exit and residence services",
   "集中管理申请人档案、身份证件与账号权限。本系统仅限授权工作人员使用，所有操作均被记录并纳入审计。":
     "Manage applicant records, identity documents and account permissions in one place. This system is for authorized staff only; every action is logged and audited.",
-  "未经授权访问、使用或泄露本系统信息将依法追究责任。":
-    "Unauthorized access, use or disclosure of information in this system will be prosecuted in accordance with the law.",
   "使用工作账号登录{system}。": "Sign in to the {system} with your work account.",
   "无法登录": "Unable to sign in",
   "用户名": "Username",
@@ -494,7 +489,6 @@ export const en: Record<string, string> = {
     "Use it to submit applications, upload documents and track progress. Please use your own email address; results will be sent there.",
   "注册失败": "Registration failed",
   "本人信息": "Your details",
-  "与护照一致的姓名，中文或拉丁字母均可": "Name as on your passport, in Chinese or Latin letters",
   "注册并开始申请": "Register and start",
   "注册即表示你确认所填信息真实有效。提供虚假材料将导致申请被驳回并依法承担责任。":
     "By registering you confirm the information is true. Providing false documents will lead to rejection and legal liability.",

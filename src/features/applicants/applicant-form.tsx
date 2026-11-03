@@ -151,7 +151,7 @@ export function ApplicantForm({ applicant }: { applicant?: Applicant }) {
             name="maritalStatus"
             label={t("婚姻状况")}
             required
-            options={Object.entries(MARITAL_LABELS).map(([value, label]) => ({ value, label }))}
+            options={Object.entries(MARITAL_LABELS).map(([value, label]) => ({ value, label: t(label) }))}
           />
           <TextField control={form.control} name="occupation" label={t("职业")} />
         </div>
@@ -161,7 +161,7 @@ export function ApplicantForm({ applicant }: { applicant?: Applicant }) {
           label={t("档案状态")}
           required
           className="sm:max-w-[calc(50%-0.625rem)]"
-          options={Object.entries(APPLICANT_STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+          options={Object.entries(APPLICANT_STATUS_LABELS).map(([value, label]) => ({ value, label: t(label) }))}
         />
         <TextareaField control={form.control} name="remarks" label={t("备注")} rows={4} placeholder={t("内部备注，申请人不可见")} />
       </Section>

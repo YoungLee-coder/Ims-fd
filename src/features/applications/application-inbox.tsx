@@ -77,8 +77,8 @@ export function ApplicationInbox() {
         description={t("查看申请人提交的业务申请，受理后可要求补件、通过建档或驳回。")}
       />
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <InputGroup className="sm:max-w-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <InputGroup className="w-full sm:max-w-sm">
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>
@@ -91,7 +91,7 @@ export function ApplicationInbox() {
           />
         </InputGroup>
         <Select value={status ?? ALL} onValueChange={(v) => setParams({ status: v === ALL ? undefined : v })}>
-          <SelectTrigger className="sm:w-36" aria-label={t("申请状态")}>
+          <SelectTrigger className="flex-1 sm:w-36 sm:flex-none" aria-label={t("申请状态")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -102,7 +102,7 @@ export function ApplicationInbox() {
             <SelectGroup>
               {Object.entries(APPLICATION_STATUS_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -138,11 +138,11 @@ export function ApplicationInbox() {
             <TableHeader>
               <TableRow>
                 <TableHead className="pl-4">{t("申请人")}</TableHead>
-                <TableHead>{t("申请编号")}</TableHead>
+                <TableHead className="max-sm:hidden">{t("申请编号")}</TableHead>
                 <TableHead className="max-lg:hidden">{t("类型")}</TableHead>
                 <TableHead className="max-md:hidden">{t("国籍")}</TableHead>
-                <TableHead>{t("状态")}</TableHead>
-                <TableHead className="pr-4 text-right">{t("最近更新")}</TableHead>
+                <TableHead className="max-sm:pr-4">{t("状态")}</TableHead>
+                <TableHead className="pr-4 text-right max-sm:hidden">{t("最近更新")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -159,9 +159,12 @@ export function ApplicationInbox() {
                       {application.nativeName && (
                         <span className="text-xs font-normal text-muted-foreground">{application.nativeName}</span>
                       )}
+                      <span className="doc-number text-xs font-normal text-muted-foreground sm:hidden">
+                        {application.applicationNo ?? t("草稿")}
+                      </span>
                     </Link>
                   </TableCell>
-                  <TableCell className="doc-number text-muted-foreground">
+                  <TableCell className="doc-number text-muted-foreground max-sm:hidden">
                     {application.applicationNo ?? t("草稿")}
                   </TableCell>
                   <TableCell className="max-lg:hidden">{t(APPLICATION_TYPE_LABELS[application.type])}</TableCell>
@@ -175,7 +178,7 @@ export function ApplicationInbox() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:pr-4">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <ApplicationStatusBadge status={application.status} />
                       {application.status === "under_review" && application.approvalLevel && (
@@ -183,7 +186,7 @@ export function ApplicationInbox() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="pr-4 text-right text-muted-foreground">
+                  <TableCell className="pr-4 text-right text-muted-foreground max-sm:hidden">
                     {formatRelative(application.updatedAt, locale)}
                   </TableCell>
                 </TableRow>
