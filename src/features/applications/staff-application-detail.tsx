@@ -28,6 +28,8 @@ import { Can } from "@/features/auth/require-permission"
 import { useStaffApplication } from "@/features/applications/api"
 import { ApplicationDocuments, useUnverifiedDocumentCount } from "@/features/applications/application-documents"
 import { ApprovalHistory, ApprovalProgress } from "@/features/applications/approval-history"
+import { AuditTrail } from "@/features/audit/audit-trail"
+import { AUDIT_PERMISSIONS } from "@/features/audit/labels"
 import { DecisionDialog } from "@/features/applications/decision-dialog"
 import { firstReviewer, isMultiLevel, workflowStep } from "@/features/applications/workflow"
 import { ApplicationTimeline } from "@/features/portal/application-timeline"
@@ -147,6 +149,11 @@ export function StaffApplicationDetail({ id }: { id: string }) {
           <Section title={t("申请材料")}>
             <ApplicationDocuments application={data} />
           </Section>
+          <Can anyOf={AUDIT_PERMISSIONS}>
+            <Section title={t("操作记录")}>
+              <AuditTrail resourceType="application" resourceId={data.id} />
+            </Section>
+          </Can>
         </div>
         <div className="flex flex-col gap-6">
           <Section title={t("申请事项")}>

@@ -517,4 +517,13 @@ export interface AuditLog {
 
 export interface AuditLogQuery extends ListQuery {
   keyword?: string
+  actorType?: AuditActorType
+  /** 完整动作代码，如 application.decision */
+  action?: string
+  resourceType?: string
+  resourceId?: ID
+  /** yyyy-MM-dd，含当天 */
+  from?: string
+  /** yyyy-MM-dd，含当天 */
+  to?: string
 }
