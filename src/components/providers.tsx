@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ThemeProvider } from "next-themes"
 
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -24,13 +25,15 @@ export function Providers({ locale, children }: { locale: Locale; children: Reac
   )
 
   return (
-    <LocaleProvider locale={locale}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={300}>
-          {children}
-          <Toaster position="top-center" />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </LocaleProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+      <LocaleProvider locale={locale}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider delayDuration={300}>
+            {children}
+            <Toaster position="top-center" />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </LocaleProvider>
+    </ThemeProvider>
   )
 }

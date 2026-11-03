@@ -147,7 +147,7 @@ function DocumentForm({
               name="type"
               label={t("证件类型")}
               required
-              options={Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+              options={Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => ({ value, label: t(label) }))}
             />
             <TextField
               control={form.control}

@@ -468,7 +468,7 @@ function PersonalStep({ form }: StepProps) {
             name="maritalStatus"
             label={t("婚姻状况")}
             required
-            options={Object.entries(MARITAL_LABELS).map(([value, label]) => ({ value, label }))}
+            options={Object.entries(MARITAL_LABELS).map(([value, label]) => ({ value, label: t(label) }))}
           />
           <TextField control={form.control} name="occupation" label={t("职业")} />
         </div>

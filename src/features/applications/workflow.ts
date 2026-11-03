@@ -91,3 +91,15 @@ export function progressStage(application: Application): ProgressStage {
       return "done"
   }
 }
+
+/**
+ * 驳回 / 撤回的申请停在哪一格：取驳回记录的审批层级；没有记录时，进过审核算初审，否则停在受理。
+ * 通过和其他状态返回 null，进度条按 progressStage 正常显示。
+ */
+export function stoppedStage(application: Application): ProgressStage | null {
+  if (application.status === "withdrawn") return "intake"
+  if (application.status !== "rejected") return null
+  const record = [...(application.approvals ?? [])].reverse().find((item) => item.action === "reject")
+  if (record?.level) return record.level
+  return application.timeline.some((entry) => entry.status === "under_review") ? "first_review" : "intake"
+}

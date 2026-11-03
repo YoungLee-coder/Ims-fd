@@ -59,6 +59,7 @@ const TABS: { value: UserStatus | "all"; label: string }[] = [
   { value: "pending", label: "待审核" },
   { value: "active", label: "正常" },
   { value: "disabled", label: "已停用" },
+  { value: "rejected", label: "已驳回" },
 ]
 
 type Confirm = { user: User; action: "disable" | "reject" } | null

@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { LocaleSwitcher } from "@/components/locale-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useT } from "@/lib/i18n/client"
 import { appConfig } from "@/lib/config"
 import { NotificationBell } from "@/features/notifications/notification-bell"
@@ -79,6 +80,7 @@ export function PortalHeader({
 
         <div className="ml-auto flex items-center gap-2">
           <LocaleSwitcher />
+          <ThemeToggle />
           {account ? (
             <>
               <NotificationBell realm="portal" />
@@ -128,14 +130,10 @@ export function PortalFooter() {
   const t = useT()
   return (
     <footer className="border-t bg-background">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>{t("本门户仅供申请人本人办理出入境与居留业务，请如实填写并上传真实材料。")}</p>
-        <p className="shrink-0">
-          {t("工作人员请")}
-          <Link href="/login" className="ml-1 font-medium text-primary underline-offset-4 hover:underline">
-            {t("从内部系统登录")}
-          </Link>
-        </p>
+      <div className="mx-auto flex w-full max-w-5xl justify-end px-4 py-6 text-xs text-muted-foreground sm:px-6">
+        <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+          {t("工作人员登录")}
+        </Link>
       </div>
     </footer>
   )

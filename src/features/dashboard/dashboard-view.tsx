@@ -102,7 +102,7 @@ export function DashboardView() {
                         "text-3xl leading-9 font-semibold tabular-nums",
                         // 0 不需要处理，弱化后有数字的格子一眼就能被看到
                         stat.value === 0 && "text-muted-foreground/70",
-                        stat.tone === "warning" && !!stat.value && "text-[color-mix(in_oklch,var(--warning),black_25%)]"
+                        stat.tone === "warning" && !!stat.value && "text-[color-mix(in_oklch,var(--warning),black_25%)] dark:text-warning"
                       )}
                     >
                       {stat.value}
