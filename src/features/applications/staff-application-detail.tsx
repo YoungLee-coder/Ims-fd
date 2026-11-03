@@ -33,6 +33,7 @@ import { AUDIT_PERMISSIONS } from "@/features/audit/labels"
 import { DecisionDialog } from "@/features/applications/decision-dialog"
 import { firstReviewer, isMultiLevel, workflowStep } from "@/features/applications/workflow"
 import { ApplicationTimeline } from "@/features/portal/application-timeline"
+import { APPLICATION_FLOWS } from "@/features/portal/requirements"
 import type { Application, ApplicationDecisionAction } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
@@ -158,8 +159,14 @@ export function StaffApplicationDetail({ id }: { id: string }) {
         <div className="flex flex-col gap-6">
           <Section title={t("申请事项")}>
             <dl className="grid grid-cols-2 gap-4">
-              <Field label={t("计划入境日期")}>{formatDate(data.intendedArrivalDate)}</Field>
-              <Field label={t("拟停留天数")}>{data.intendedStayDays ? t("{days} 天", { days: data.intendedStayDays }) : "—"}</Field>
+              <Field label={t(APPLICATION_FLOWS[data.type].date.label)}>{formatDate(data.intendedArrivalDate)}</Field>
+              <Field label={t(APPLICATION_FLOWS[data.type].stay?.label ?? "居留期限")}>
+                {!APPLICATION_FLOWS[data.type].stay
+                  ? t("不限期")
+                  : data.intendedStayDays
+                    ? t("{days} 天", { days: data.intendedStayDays })
+                    : "—"}
+              </Field>
               <Field label={t("申请事由")} className="col-span-2">
                 {data.purpose || "—"}
               </Field>

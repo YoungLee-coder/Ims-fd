@@ -113,7 +113,7 @@ export const endpoints = {
       submit: (id: ID) => `/portal/applications/${id}/submit`,
       /** POST -> Application（受理前由申请人撤回） */
       withdraw: (id: ID) => `/portal/applications/${id}/withdraw`,
-      /** POST multipart/form-data（字段 files[]）-> Attachment[]，仅草稿可上传 */
+      /** POST multipart/form-data（字段 files[]、requirement、category）-> Attachment[]，仅草稿可上传 */
       attachments: (id: ID) => `/portal/applications/${id}/attachments`,
       /** DELETE -> 204 */
       attachment: (id: ID, attachmentId: ID) => `/portal/applications/${id}/attachments/${attachmentId}`,

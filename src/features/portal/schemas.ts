@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import { z } from "zod"
 
+import { APPLICATION_FLOWS } from "@/features/portal/requirements"
 import type { Application, ApplicationDraftPayload } from "@/types"
 
 /* ---------------- 账号 ---------------- */
@@ -61,12 +62,9 @@ export const applicationSchema = z
     /* 申请事项 */
     type: z.enum(APPLICATION_TYPES, { error: "请选择申请类型" }),
     purpose: z.string().trim().min(10, "请用至少 10 个字说明申请事由").max(500, "最多 500 个字符"),
-    intendedArrivalDate: z.string().min(1, "请选择计划入境日期"),
-    intendedStayDays: z
-      .string()
-      .trim()
-      .regex(/^\d{1,4}$/, "请输入停留天数")
-      .refine((v) => Number(v) >= 1 && Number(v) <= 3650, "停留天数需在 1–3650 之间"),
+    intendedArrivalDate: z.string().min(1, "请选择日期"),
+    /** 范围随申请类型变化，见下方 superRefine */
+    intendedStayDays: z.string().trim(),
 
     /* 个人信息 */
     surname: latinName("请输入姓", "姓最多 39 个字符"),
@@ -103,18 +101,41 @@ export const applicationSchema = z
     path: ["passportIssueDate"],
     message: "签发日期不能晚于今天",
   })
-  .refine((v) => !v.passportExpiryDate || v.passportExpiryDate > today(), {
-    path: ["passportExpiryDate"],
-    message: "护照已过期，请先换发后再提交申请",
-  })
   .refine((v) => !v.passportIssueDate || !v.passportExpiryDate || v.passportIssueDate < v.passportExpiryDate, {
     path: ["passportExpiryDate"],
     message: "有效期需晚于签发日期",
   })
-  .refine((v) => !v.passportExpiryDate || !v.intendedArrivalDate || v.passportExpiryDate > v.intendedArrivalDate, {
-    path: ["passportExpiryDate"],
-    message: "护照有效期需晚于计划入境日期",
-  })
+  .superRefine(
+    (v, ctx) => {
+      // 未选类型时由 z.enum 报错，这里只校验与类型相关的规则
+      const flow = APPLICATION_FLOWS[v.type]
+      if (!flow) return
+
+      const date = v.intendedArrivalDate
+      if (date && (flow.date.when === "future" ? date < today() : date > today())) {
+        ctx.addIssue({ code: "custom", path: ["intendedArrivalDate"], message: flow.date.message })
+      }
+
+      if (flow.stay) {
+        const days = Number(v.intendedStayDays)
+        if (!/^\d{1,4}$/.test(v.intendedStayDays)) {
+          ctx.addIssue({ code: "custom", path: ["intendedStayDays"], message: "请输入天数" })
+        } else if (days < flow.stay.min || days > flow.stay.max) {
+          ctx.addIssue({ code: "custom", path: ["intendedStayDays"], message: flow.stay.message })
+        }
+      }
+
+      const expiry = v.passportExpiryDate
+      if (!expiry || flow.passport.allowExpired) return
+      if (expiry <= today()) {
+        ctx.addIssue({ code: "custom", path: ["passportExpiryDate"], message: "护照已过期，请先换发后再提交申请" })
+      } else if (flow.passport.afterDateMessage && date && expiry <= date) {
+        ctx.addIssue({ code: "custom", path: ["passportExpiryDate"], message: flow.passport.afterDateMessage })
+      }
+    },
+    // 分步校验时后面步骤的字段还空着，默认会跳过对象级校验；这里始终执行，申请事项一步才能及时报错
+    { when: () => true }
+  )
 
 export type ApplicationFormValues = z.infer<typeof applicationSchema>
 
@@ -123,7 +144,7 @@ const EMPTY_FORM: ApplicationFormValues = {
   type: "" as ApplicationFormValues["type"],
   purpose: "",
   intendedArrivalDate: "",
-  intendedStayDays: "30",
+  intendedStayDays: "",
   surname: "",
   givenNames: "",
   nativeName: "",
@@ -149,7 +170,7 @@ export function toApplicationFormValues(application?: Application): ApplicationF
     type: application.type,
     purpose: application.purpose,
     intendedArrivalDate: application.intendedArrivalDate,
-    intendedStayDays: String(application.intendedStayDays || 30),
+    intendedStayDays: application.intendedStayDays ? String(application.intendedStayDays) : "",
     surname: application.surname,
     givenNames: application.givenNames,
     nativeName: application.nativeName,
@@ -175,13 +196,15 @@ export function toDraftPayload(values: ApplicationFormValues): ApplicationDraftP
     ...values,
     surname: values.surname.toUpperCase().replace(/\s+/g, " "),
     givenNames: values.givenNames.toUpperCase().replace(/\s+/g, " "),
-    intendedStayDays: Number(values.intendedStayDays),
+    // 永久居留没有停留期限，记为 0
+    intendedStayDays: APPLICATION_FLOWS[values.type]?.stay ? Number(values.intendedStayDays) || 0 : 0,
   }
 }
 
-/** 分步向导每一步需要校验的字段 */
+/** 分步向导每一步需要校验的字段：类型 → 申请事项 → 个人信息 → 护照 → 材料 → 确认 */
 export const STEP_FIELDS: (keyof ApplicationFormValues)[][] = [
-  ["type", "purpose", "intendedArrivalDate", "intendedStayDays"],
+  ["type"],
+  ["purpose", "intendedArrivalDate", "intendedStayDays"],
   [
     "surname",
     "givenNames",

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { portalApi } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
+import { writeLocalRequirements, type DocumentRequirement } from "@/features/portal/requirements"
 import type {
   ApplicantAccount,
   ApplicantLoginPayload,
@@ -12,6 +13,7 @@ import type {
   ApplicationQuery,
   Attachment,
   ID,
+  RequirementKey,
 } from "@/types"
 
 export const portalAuthKeys = {
@@ -53,9 +55,13 @@ export const applicationsApi = {
   submit: (id: ID) => portalApi.post<Application>(endpoints.portal.applications.submit(id)),
   withdraw: (id: ID) => portalApi.post<Application>(endpoints.portal.applications.withdraw(id)),
   remove: (id: ID) => portalApi.delete(endpoints.portal.applications.detail(id)),
-  uploadAttachments: (id: ID, files: File[]) => {
+  uploadAttachments: (id: ID, files: File[], requirement?: DocumentRequirement) => {
     const form = new FormData()
     files.forEach((file) => form.append("files", file))
+    if (requirement) {
+      form.append("requirement", requirement.key)
+      form.append("category", requirement.category)
+    }
     return portalApi.post<Attachment[]>(endpoints.portal.applications.attachments(id), form)
   },
   removeAttachment: (id: ID, attachmentId: ID) =>
@@ -119,8 +125,15 @@ export function useDeleteDraft() {
 export function useUploadAttachments() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, files }: { id: ID; files: File[] }) => applicationsApi.uploadAttachments(id, files),
-    onSuccess: (_, { id }) => {
+    mutationFn: ({ id, files, requirement }: { id: ID; files: File[]; requirement?: DocumentRequirement }) =>
+      applicationsApi.uploadAttachments(id, files, requirement),
+    onSuccess: (added, { id, requirement }) => {
+      // 旧版后端不保存 requirement，在本机记下归属，刷新后仍能放回原来的清单项
+      if (requirement) {
+        const entries: Record<ID, RequirementKey> = {}
+        for (const attachment of added) entries[attachment.id] = attachment.requirement ?? requirement.key
+        writeLocalRequirements(id, entries)
+      }
       queryClient.invalidateQueries({ queryKey: applicationKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: applicationKeys.all })
     },

@@ -34,6 +34,7 @@ import {
   useVerifyApplicationDocument,
 } from "@/features/applications/api"
 import { AttachmentList } from "@/features/portal/attachment-list"
+import { APPLICATION_FLOWS, groupAttachments, missingDocuments } from "@/features/portal/requirements"
 import type { Application, ApplicationDocument, ApplicationDocumentCategory, ApplicationStatus } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
@@ -63,6 +64,9 @@ export function ApplicationDocuments({ application }: { application: Application
 
   const verified = data.filter((doc) => doc.verification === "verified").length
   const rejected = data.filter((doc) => doc.verification === "rejected").length
+  // 后端返回了清单归属时，按申请类型核对必交材料是否齐全
+  const classified = data.some((doc) => doc.requirement)
+  const missing = classified ? missingDocuments(application.type, groupAttachments(application.type, data)) : []
 
   return (
     <div className="flex flex-col gap-4">
@@ -73,6 +77,12 @@ export function ApplicationDocuments({ application }: { application: Application
         </p>
       )}
 
+      {missing.length > 0 && (
+        <p className="text-sm text-destructive">
+          {t("缺少必交材料：{items}", { items: missing.map((doc) => t(doc.label)).join(t("、")) })}
+        </p>
+      )}
+
       {data.length === 0 ? (
         <AttachmentList attachments={[]} emptyHint={t("本次申请尚未上传材料。")} />
       ) : (
@@ -80,7 +90,7 @@ export function ApplicationDocuments({ application }: { application: Application
           {data.map((doc) => (
             <DocumentRow
               key={doc.id}
-              applicationId={application.id}
+              application={application}
               document={doc}
               editable={editable}
               onVerify={() => setVerifying(doc)}
@@ -112,18 +122,19 @@ export function ApplicationDocuments({ application }: { application: Application
 }
 
 function DocumentRow({
-  applicationId,
+  application,
   document,
   editable,
   onVerify,
 }: {
-  applicationId: string
+  application: Application
   document: ApplicationDocument
   editable: boolean
   onVerify: () => void
 }) {
   const t = useT()
-  const remove = useRemoveApplicationDocument(applicationId)
+  const remove = useRemoveApplicationDocument(application.id)
+  const requirement = APPLICATION_FLOWS[application.type].documents.find((doc) => doc.key === document.requirement)
   const removable = editable && document.source === "staff" && document.verification === "pending"
 
   return (
@@ -172,7 +183,9 @@ function DocumentRow({
         )}
       </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pl-7 text-xs text-muted-foreground">
-        <Badge variant="secondary">{t(APPLICATION_DOCUMENT_CATEGORY_LABELS[document.category])}</Badge>
+        <Badge variant="secondary">
+          {requirement ? t(requirement.label) : t(APPLICATION_DOCUMENT_CATEGORY_LABELS[document.category])}
+        </Badge>
         <span>{document.source === "staff" ? t("窗口代传") : t("申请人上传")}</span>
         <span className="tabular-nums">· {formatFileSize(document.size)}</span>
         {document.verifiedBy && document.verifiedAt && (
