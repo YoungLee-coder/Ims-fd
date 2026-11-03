@@ -3,17 +3,17 @@ import { z } from "zod"
 
 import type { Applicant, ApplicantPayload } from "@/types"
 
-const latinName = (label: string) =>
+const latinName = (required: string, tooLong: string) =>
   z
     .string()
     .trim()
-    .min(1, `请输入${label}`)
-    .max(39, `${label}最多 39 个字符`)
+    .min(1, required)
+    .max(39, tooLong)
     .regex(/^[A-Za-z][A-Za-z\s'-]*$/, "请按护照机读区填写拉丁字母")
 
 export const applicantSchema = z.object({
-  surname: latinName("姓"),
-  givenNames: latinName("名"),
+  surname: latinName("请输入姓", "姓最多 39 个字符"),
+  givenNames: latinName("请输入名", "名最多 39 个字符"),
   nativeName: z.string().trim().max(60, "最多 60 个字符"),
   sex: z.enum(["M", "F", "X"], { error: "请选择性别" }),
   dateOfBirth: z
