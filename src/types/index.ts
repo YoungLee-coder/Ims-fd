@@ -187,6 +187,8 @@ export interface Attachment {
   size: number
   url: string
   uploadedAt: ISODateTime
+  /** 申请材料对应清单里的哪一项；证件扫描件与旧版后端不返回 */
+  requirement?: RequirementKey | null
 }
 
 export interface IdentityDocument {
@@ -408,6 +410,31 @@ export interface ApplicationDecisionPayload {
   action: ApplicationDecisionAction
   note?: string
 }
+
+/** 申请材料清单项，各申请类型需要哪些见 features/portal/requirements.ts */
+export type RequirementKey =
+  | "passport_bio"
+  | "photo"
+  | "itinerary"
+  | "accommodation"
+  | "financial_proof"
+  | "invitation"
+  | "insurance"
+  | "entry_record"
+  | "purpose_proof"
+  | "address_proof"
+  | "health_check"
+  | "criminal_record"
+  | "current_permit"
+  | "continuation_proof"
+  | "tax_record"
+  | "residence_history"
+  | "income_proof"
+  | "family_proof"
+  | "loss_report"
+  | "identity_proof"
+  | "passport_copy"
+  | "other"
 
 /** 申请材料的用途分类，便于核验人员对照清单。 */
 export type ApplicationDocumentCategory = "passport_scan" | "photo" | "supporting" | "other"
