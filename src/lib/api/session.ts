@@ -45,3 +45,18 @@ export function clearPortalSession() {
   window.localStorage.removeItem(PORTAL_TOKEN_KEY)
   writeCookie(PORTAL_SESSION_COOKIE, "", 0)
 }
+
+/**
+ * 其他标签页登出或换了账号时通知当前页。storage 事件只在其他标签页触发，
+ * 本页自己的登录登出不会回调。
+ */
+export function watchSession(realm: "staff" | "portal", onChange: (token: string | null) => void) {
+  const key = realm === "staff" ? TOKEN_KEY : PORTAL_TOKEN_KEY
+  const listener = (event: StorageEvent) => {
+    // key 为 null 表示整个 localStorage 被清空
+    if (event.key !== null && event.key !== key) return
+    onChange(window.localStorage.getItem(key))
+  }
+  window.addEventListener("storage", listener)
+  return () => window.removeEventListener("storage", listener)
+}

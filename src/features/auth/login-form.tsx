@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { CircleAlertIcon } from "lucide-react"
+import { CircleAlertIcon, InfoIcon } from "lucide-react"
 
 import { PasswordField, TextField } from "@/components/form/fields"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -15,20 +15,15 @@ import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { errorMessage } from "@/lib/api/client"
 import { setSession } from "@/lib/api/session"
-import { appConfig } from "@/lib/config"
+import { PORTAL_BASE_PATH, appConfig } from "@/lib/config"
 import { useT } from "@/lib/i18n/client"
+import { safeStaffNext } from "@/lib/safe-redirect"
 import { authApi, authKeys } from "@/features/auth/api"
 import { loginSchema, type LoginValues } from "@/features/auth/schemas"
 
 const DEMO_ACCOUNT = { username: "admin", password: "Admin@2026", role: "系统管理员" }
 
-function safeNext(next: string | null) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard"
-  if (next.startsWith("/login") || next.startsWith("/register")) return "/dashboard"
-  return next
-}
-
-export function LoginForm() {
+export function LoginForm({ signedInAsApplicant = false }: { signedInAsApplicant?: boolean }) {
   const t = useT()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -44,7 +39,7 @@ export function LoginForm() {
     onSuccess: (result) => {
       setSession(result.accessToken, result.expiresIn)
       queryClient.setQueryData(authKeys.me, result.user)
-      router.replace(safeNext(searchParams.get("next")))
+      router.replace(safeStaffNext(searchParams.get("next")))
     },
   })
 
@@ -54,6 +49,19 @@ export function LoginForm() {
         <h2 className="text-2xl font-semibold">{t("登录")}</h2>
         <p className="text-sm text-muted-foreground">{t("使用工作账号登录{system}。", { system: t(appConfig.systemName) })}</p>
       </div>
+
+      {signedInAsApplicant && (
+        <Alert>
+          <InfoIcon />
+          <AlertTitle>{t("你当前以申请人身份登录")}</AlertTitle>
+          <AlertDescription>
+            <p>{t("管理后台仅限工作人员使用，申请人账号无法在此登录。")}</p>
+            <Button variant="outline" size="sm" className="mt-2" asChild>
+              <Link href={`${PORTAL_BASE_PATH}/applications`}>{t("返回申请人门户")}</Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form method="post" noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))} className="flex flex-col gap-6">
         {login.isError && (

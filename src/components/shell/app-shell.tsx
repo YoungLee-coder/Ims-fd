@@ -12,7 +12,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useT } from "@/lib/i18n/client"
 import { errorMessage, leaveToLogin } from "@/lib/api/client"
-import { getToken } from "@/lib/api/session"
+import { getToken, watchSession } from "@/lib/api/session"
 import { AuthProvider, useCurrentUserQuery } from "@/features/auth/auth-provider"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -21,8 +21,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const me = useCurrentUserQuery(hasToken)
 
   useEffect(() => {
-    if (getToken()) return
-    leaveToLogin("staff")
+    if (!getToken()) leaveToLogin("staff")
+    // 别的标签页登出就跟着离开；换了账号则整页刷新，丢掉上一个账号的缓存数据
+    return watchSession("staff", (token) => (token ? window.location.reload() : leaveToLogin("staff")))
   }, [])
 
   if (me.isPending) {

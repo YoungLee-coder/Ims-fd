@@ -10,7 +10,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Skeleton } from "@/components/ui/skeleton"
 import { useT } from "@/lib/i18n/client"
 import { errorMessage, leaveToLogin } from "@/lib/api/client"
-import { getPortalToken } from "@/lib/api/session"
+import { getPortalToken, watchSession } from "@/lib/api/session"
 import { PortalAuthProvider, usePortalAuth } from "@/features/portal/portal-auth-provider"
 import { useCurrentAccountQuery } from "@/features/portal/api"
 
@@ -24,8 +24,8 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   const me = useCurrentAccountQuery(hasToken)
 
   useEffect(() => {
-    if (getPortalToken()) return
-    leaveToLogin("portal")
+    if (!getPortalToken()) leaveToLogin("portal")
+    return watchSession("portal", (token) => (token ? window.location.reload() : leaveToLogin("portal")))
   }, [])
 
   if (me.isPending) {
