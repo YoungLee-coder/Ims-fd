@@ -54,8 +54,8 @@ export function ApplicationList() {
           </EmptyHeader>
         </Empty>
       ) : isPending ? (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label={t("正在加载申请列表")}>
-          {Array.from({ length: 3 }).map((_, i) => (
+        <div className="grid gap-3 lg:grid-cols-2" aria-busy="true" aria-label={t("正在加载申请列表")}>
+          {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-xl" />
           ))}
         </div>
@@ -77,9 +77,9 @@ export function ApplicationList() {
           </EmptyContent>
         </Empty>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid gap-3 lg:grid-cols-2">
           {data.map((application) => (
-            <li key={application.id}>
+            <li key={application.id} className="flex *:flex-1">
               <ApplicationCard application={application} />
             </li>
           ))}

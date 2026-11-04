@@ -25,7 +25,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import { errorMessage } from "@/lib/api/client"
+import { errorMessage, isNotFoundError } from "@/lib/api/client"
 import {
   APPLICATION_TYPE_LABELS,
   MARITAL_LABELS,
@@ -38,6 +38,7 @@ import { useApplication, useDeleteDraft, useWithdrawApplication } from "@/featur
 import { ApplicationTimeline } from "@/features/portal/application-timeline"
 import { RequirementChecklist } from "@/features/portal/requirement-checklist"
 import { APPLICATION_FLOWS } from "@/features/portal/requirements"
+import { cn } from "@/lib/utils"
 import type { Application } from "@/types"
 import { useT } from "@/lib/i18n/client"
 
@@ -55,11 +56,12 @@ export function ApplicationDetail({ id }: { id: string }) {
   }
 
   if (isError) {
+    const missing = isNotFoundError(error)
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>
-          <EmptyTitle>{t("无法加载申请")}</EmptyTitle>
-          <EmptyDescription>{errorMessage(error)}</EmptyDescription>
+          <EmptyTitle>{missing ? t("申请不存在") : t("无法加载申请")}</EmptyTitle>
+          <EmptyDescription>{missing ? t("该申请可能已被删除，或链接有误。") : errorMessage(error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline" asChild>
@@ -101,19 +103,23 @@ export function ApplicationDetail({ id }: { id: string }) {
 
       <StatusNotice application={data} />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-        <div className="flex flex-col gap-6">
-          <Section title={t("办理进度")}>
-            <ApplicationTimeline timeline={data.timeline} />
-          </Section>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
+        <Section title={t("办理进度")}>
+          <ApplicationTimeline timeline={data.timeline} />
+        </Section>
 
-          <Section title={t("申请材料（{count}）", { count: data.attachments.length })}>
-            <RequirementChecklist application={data} />
-          </Section>
-        </div>
+        <Section title={t("申请材料（{count}）", { count: data.attachments.length })}>
+          <RequirementChecklist application={data} />
+        </Section>
+      </div>
 
-        <div className="flex flex-col gap-6">
-          <Section title={t("申请事项")}>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>{t("申请详情")}</CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-0 lg:divide-x">
+          <InfoGroup title={t("申请事项")} className="lg:pr-6">
             <dl className="grid grid-cols-2 gap-4">
               <Field label={t(APPLICATION_FLOWS[data.type].date.label)}>{formatDate(data.intendedArrivalDate)}</Field>
               <Field label={t(APPLICATION_FLOWS[data.type].stay?.label ?? "居留期限")}>
@@ -127,9 +133,15 @@ export function ApplicationDetail({ id }: { id: string }) {
                 {data.purpose || "—"}
               </Field>
             </dl>
-          </Section>
+            <h3 className="mt-6 mb-3 text-sm font-medium">{t("记录")}</h3>
+            <dl className="grid grid-cols-2 gap-4">
+              <Field label={t("创建时间")}>{formatDateTime(data.createdAt)}</Field>
+              <Field label={t("提交时间")}>{formatDateTime(data.submittedAt)}</Field>
+              <Field label={t("最近更新")}>{formatDateTime(data.updatedAt)}</Field>
+            </dl>
+          </InfoGroup>
 
-          <Section title={t("申请人信息")}>
+          <InfoGroup title={t("申请人信息")} className="lg:px-6">
             <dl className="grid grid-cols-2 gap-4">
               <Field label={t("姓名（拉丁）")} className="col-span-2">
                 {data.surname || data.givenNames ? `${data.surname} ${data.givenNames}` : "—"}
@@ -155,9 +167,9 @@ export function ApplicationDetail({ id }: { id: string }) {
                 {data.address || "—"}
               </Field>
             </dl>
-          </Section>
+          </InfoGroup>
 
-          <Section title={t("护照信息")}>
+          <InfoGroup title={t("护照信息")} className="lg:pl-6">
             <dl className="grid grid-cols-2 gap-4">
               <Field label={t("护照号码")} className="col-span-2">
                 <span className="doc-number">{data.passportNumber || "—"}</span>
@@ -171,17 +183,9 @@ export function ApplicationDetail({ id }: { id: string }) {
               <Field label={t("签发日期")}>{formatDate(data.passportIssueDate)}</Field>
               <Field label={t("有效期至")}>{formatDate(data.passportExpiryDate)}</Field>
             </dl>
-          </Section>
-
-          <Section title={t("记录")}>
-            <dl className="grid grid-cols-1 gap-4">
-              <Field label={t("创建时间")}>{formatDateTime(data.createdAt)}</Field>
-              <Field label={t("提交时间")}>{formatDateTime(data.submittedAt)}</Field>
-              <Field label={t("最近更新")}>{formatDateTime(data.updatedAt)}</Field>
-            </dl>
-          </Section>
-        </div>
-      </div>
+          </InfoGroup>
+        </CardContent>
+      </Card>
     </>
   )
 }
@@ -237,6 +241,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <Separator />
       <CardContent>{children}</CardContent>
     </Card>
+  )
+}
+
+function InfoGroup({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
+  return (
+    <section className={cn("min-w-0", className)}>
+      <h3 className="mb-3 text-sm font-medium">{title}</h3>
+      {children}
+    </section>
   )
 }
 

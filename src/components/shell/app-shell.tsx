@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { CloudOffIcon } from "lucide-react"
 
+import { PageTransition } from "@/components/page-transition"
 import { AppHeader } from "@/components/shell/app-header"
 import { AppSidebar } from "@/components/shell/app-sidebar"
 import { Button } from "@/components/ui/button"
@@ -65,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarInset>
           <AppHeader />
           <main id="main-content" className="flex flex-1 flex-col px-4 py-6 md:px-8 md:py-8">
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
         </SidebarInset>
       </SidebarProvider>

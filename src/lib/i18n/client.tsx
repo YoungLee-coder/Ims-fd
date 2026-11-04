@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useMemo } from "react"
+import { addTransitionType, createContext, startTransition, useCallback, useContext, useMemo } from "react"
 import { useRouter } from "next/navigation"
 
 import { LOCALE_COOKIE, type Locale } from "@/lib/i18n/config"
@@ -34,7 +34,11 @@ export function useSetLocale() {
   return useCallback(
     (next: Locale) => {
       document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
-      router.refresh()
+      // 带上过渡类型，页面级 ViewTransition 与 globals.css 据此播放换语言的淡入淡出
+      startTransition(() => {
+        addTransitionType("locale-change")
+        router.refresh()
+      })
     },
     [router]
   )
