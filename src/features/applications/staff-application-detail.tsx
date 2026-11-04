@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { errorMessage } from "@/lib/api/client"
+import { errorMessage, isNotFoundError } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
 import {
   APPLICATION_TYPE_LABELS,
@@ -57,11 +57,12 @@ export function StaffApplicationDetail({ id }: { id: string }) {
   }
 
   if (isError || !data) {
+    const missing = isNotFoundError(error)
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>
-          <EmptyTitle>{t("无法加载申请")}</EmptyTitle>
-          <EmptyDescription>{errorMessage(error)}</EmptyDescription>
+          <EmptyTitle>{missing ? t("申请不存在") : t("无法加载申请")}</EmptyTitle>
+          <EmptyDescription>{missing ? t("该申请可能已被删除，或链接有误。") : errorMessage(error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline" asChild>
