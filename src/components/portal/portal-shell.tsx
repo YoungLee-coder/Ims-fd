@@ -3,13 +3,14 @@
 import { useEffect } from "react"
 import { CloudOffIcon } from "lucide-react"
 
-import { PortalFooter, PortalHeader } from "@/components/portal/portal-header"
+import { PageTransition } from "@/components/page-transition"
+import { PortalHeader } from "@/components/portal/portal-header"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useT } from "@/lib/i18n/client"
 import { errorMessage, leaveToLogin } from "@/lib/api/client"
-import { getPortalToken } from "@/lib/api/session"
+import { getPortalToken, watchSession } from "@/lib/api/session"
 import { PortalAuthProvider, usePortalAuth } from "@/features/portal/portal-auth-provider"
 import { useCurrentAccountQuery } from "@/features/portal/api"
 
@@ -23,15 +24,15 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   const me = useCurrentAccountQuery(hasToken)
 
   useEffect(() => {
-    if (getPortalToken()) return
-    leaveToLogin("portal")
+    if (!getPortalToken()) leaveToLogin("portal")
+    return watchSession("portal", (token) => (token ? window.location.reload() : leaveToLogin("portal")))
   }, [])
 
   if (me.isPending) {
     return (
       <div className="flex min-h-svh flex-col bg-muted/30" aria-busy="true" aria-label={t("正在加载")}>
         <PortalHeader account={null} />
-        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-8 sm:px-6 lg:py-12">
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-8 sm:px-6 lg:py-12">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-40 w-full" />
         </div>
@@ -71,10 +72,9 @@ function PortalFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col bg-muted/30">
       <PortalHeader account={account} onLogout={logout} />
-      <main id="main-content" className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 sm:px-6 lg:py-10">
-        {children}
+      <main id="main-content" className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 lg:py-8">
+        <PageTransition>{children}</PageTransition>
       </main>
-      <PortalFooter />
     </div>
   )
 }

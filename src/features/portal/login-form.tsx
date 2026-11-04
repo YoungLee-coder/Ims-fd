@@ -17,13 +17,7 @@ import { setPortalSession } from "@/lib/api/session"
 import { portalAuthApi, portalAuthKeys } from "@/features/portal/api"
 import { portalLoginSchema, type PortalLoginValues } from "@/features/portal/schemas"
 import { useT } from "@/lib/i18n/client"
-
-/** 只允许跳回门户内部路径，避免 next 参数把用户带到其他系统。 */
-function safeNext(next: string | null) {
-  if (!next || !next.startsWith("/portal/") || next.startsWith("//")) return "/portal/applications"
-  if (next.startsWith("/portal/login") || next.startsWith("/portal/register")) return "/portal/applications"
-  return next
-}
+import { safePortalNext } from "@/lib/safe-redirect"
 
 export function PortalLoginForm() {
   const t = useT()
@@ -41,7 +35,7 @@ export function PortalLoginForm() {
       setPortalSession(result.accessToken, result.expiresIn)
       queryClient.setQueryData(portalAuthKeys.me, result.account)
       // 在事件回调里读取查询参数，页面因此无需 useSearchParams，可以直接服务端渲染
-      router.replace(safeNext(new URLSearchParams(window.location.search).get("next")))
+      router.replace(safePortalNext(new URLSearchParams(window.location.search).get("next")))
     },
   })
 

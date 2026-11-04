@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-import { errorMessage } from "@/lib/api/client"
+import { errorMessage, isNotFoundError } from "@/lib/api/client"
 import { useApplicant } from "@/features/applicants/api"
 import { ApplicantForm } from "@/features/applicants/applicant-form"
 import { useT } from "@/lib/i18n/client"
@@ -25,11 +25,12 @@ export function EditApplicant({ id }: { id: string }) {
   }
 
   if (isError) {
+    const missing = isNotFoundError(error)
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>
-          <EmptyTitle>{t("无法加载档案")}</EmptyTitle>
-          <EmptyDescription>{errorMessage(error)}</EmptyDescription>
+          <EmptyTitle>{missing ? t("档案不存在") : t("无法加载档案")}</EmptyTitle>
+          <EmptyDescription>{missing ? t("该档案可能已被删除，或链接有误。") : errorMessage(error)}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline" asChild>

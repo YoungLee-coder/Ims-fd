@@ -29,7 +29,7 @@ import {
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ApiError, errorMessage } from "@/lib/api/client"
+import { errorMessage, isNotFoundError } from "@/lib/api/client"
 import { countryName, MARITAL_LABELS, SEX_LABELS } from "@/lib/constants"
 import { formatDate, formatDateTime, mrzLine } from "@/lib/format"
 import { useAuth } from "@/features/auth/auth-provider"
@@ -76,7 +76,7 @@ export function ApplicantDetail({ id }: { id: string }) {
   }
 
   if (isError) {
-    const missing = error instanceof ApiError && error.status === 404
+    const missing = isNotFoundError(error)
     return (
       <Empty className="min-h-[50vh]">
         <EmptyHeader>

@@ -1,5 +1,6 @@
 import { AgencyLockup } from "@/components/brand"
 import { LocaleSwitcher } from "@/components/locale-switcher"
+import { PageTransition } from "@/components/page-transition"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { appConfig } from "@/lib/config"
 import { getT } from "@/lib/i18n/server"
@@ -44,7 +45,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
-          <div className="w-full max-w-md">{children}</div>
+          <PageTransition className="w-full max-w-md flex-none">{children}</PageTransition>
         </div>
       </main>
     </div>

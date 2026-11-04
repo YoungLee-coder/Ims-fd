@@ -27,6 +27,27 @@ export class ApiError extends Error {
   }
 }
 
+/** 请求未到达服务器（断网、DNS、CORS 等），status 记为 0。 */
+export const NETWORK_ERROR = "NETWORK_ERROR"
+
+export function isNotFoundError(error: unknown) {
+  return error instanceof ApiError && error.status === 404
+}
+
+/** 4xx 是确定性的业务结果，重试不会改变；网络错误和 5xx 才值得重试。 */
+export function isRetryableError(error: unknown) {
+  return !(error instanceof ApiError) || error.status === 0 || error.status >= 500
+}
+
+function defaultStatusMessage(status: number) {
+  const locale = currentLocale()
+  if (status === 403) return translate(locale, "没有权限执行此操作。")
+  if (status === 404) return translate(locale, "请求的资源不存在。")
+  if (status === 429) return translate(locale, "请求过于频繁，请稍后再试。")
+  if (status >= 500) return translate(locale, "服务器暂时不可用，请稍后重试。")
+  return translate(locale, "请求失败（{status}）", { status })
+}
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
 export type Query = Record<string, string | number | boolean | undefined | null>
@@ -99,18 +120,25 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   if (token) headers.Authorization = `Bearer ${token}`
   if (options.body !== undefined && !isFormData) headers["Content-Type"] = "application/json"
 
-  const response = await fetch(buildUrl(path, options.query), {
-    method,
-    headers,
-    credentials: "include",
-    signal: options.signal,
-    body:
-      options.body === undefined
-        ? undefined
-        : isFormData
-          ? (options.body as FormData)
-          : JSON.stringify(options.body),
-  })
+  let response: Response
+  try {
+    response = await fetch(buildUrl(path, options.query), {
+      method,
+      headers,
+      credentials: "include",
+      signal: options.signal,
+      body:
+        options.body === undefined
+          ? undefined
+          : isFormData
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
+    })
+  } catch (error) {
+    // 取消请求要原样抛出，React Query 依赖 AbortError 识别主动取消
+    if (error instanceof DOMException && error.name === "AbortError") throw error
+    throw new ApiError(0, NETWORK_ERROR, translate(currentLocale(), "网络连接失败，请检查网络后重试。"))
+  }
 
   if (response.status === 401) redirectToLogin(realm, path)
 
@@ -119,7 +147,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiError(
       response.status,
       payload?.code ?? "HTTP_ERROR",
-      payload?.message ?? translate(currentLocale(), "请求失败（{status}）", { status: response.status }),
+      payload?.message ?? defaultStatusMessage(response.status),
       payload?.fieldErrors
     )
   }

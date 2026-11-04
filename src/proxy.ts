@@ -28,6 +28,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(PORTAL_BASE_PATH, request.url))
   }
 
+  if (pathname === "/404") return NextResponse.next()
+
   if (isUnder(pathname, PORTAL_BASE_PATH)) {
     const hasPortalSession = request.cookies.has(PORTAL_SESSION_COOKIE)
     const isPortalPublic = matches(pathname, PORTAL_PUBLIC_PATHS)

@@ -170,3 +170,101 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
+/* ---------- 页面与步骤切换（React ViewTransition） ---------- */
+
+:root {
+  --vt-exit: 140ms;
+  --vt-enter: 220ms;
+  --vt-move: 320ms;
+}
+
+/* 动画期间放行点击，避免过渡遮罩吞掉操作 */
+::view-transition {
+  pointer-events: none;
+}
+
+/* 页头、侧栏等未命名区域直接切换，只让内容区动起来 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.page-exit) {
+  animation: var(--vt-exit) ease-in both vt-fade reverse;
+}
+::view-transition-new(.page-enter) {
+  --vt-offset-y: 8px;
+  animation:
+    var(--vt-enter) ease-out var(--vt-exit) both vt-fade,
+    var(--vt-move) cubic-bezier(0.2, 0, 0, 1) var(--vt-exit) both vt-slide;
+}
+
+::view-transition-old(.step-forward),
+::view-transition-old(.step-back) {
+  animation:
+    var(--vt-exit) ease-in both vt-fade reverse,
+    var(--vt-exit) ease-in both vt-slide reverse;
+}
+::view-transition-new(.step-forward),
+::view-transition-new(.step-back) {
+  animation:
+    var(--vt-enter) ease-out var(--vt-exit) both vt-fade,
+    var(--vt-move) cubic-bezier(0.2, 0, 0, 1) var(--vt-exit) both vt-slide;
+}
+::view-transition-old(.step-forward) {
+  --vt-offset-x: -24px;
+}
+::view-transition-new(.step-forward) {
+  --vt-offset-x: 24px;
+}
+::view-transition-old(.step-back) {
+  --vt-offset-x: 24px;
+}
+::view-transition-new(.step-back) {
+  --vt-offset-x: -24px;
+}
+
+/* 切换语言：内容区与页头、侧栏同时交叉淡化（不错开，避免中途整页空白），文字不会突然跳变 */
+::view-transition-old(.locale-change),
+:root:active-view-transition-type(locale-change)::view-transition-old(root) {
+  animation: var(--vt-enter) ease-out both vt-blur-fade reverse;
+}
+::view-transition-new(.locale-change),
+:root:active-view-transition-type(locale-change)::view-transition-new(root) {
+  animation: var(--vt-enter) ease-out both vt-blur-fade;
+}
+
+/* 新旧内容高度不同，不做尺寸插值，避免卡片被拉伸变形 */
+::view-transition-group(.page-enter),
+::view-transition-group(.page-exit),
+::view-transition-group(.step-forward),
+::view-transition-group(.step-back),
+::view-transition-group(.locale-change) {
+  animation-duration: 0s;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-blur-fade {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+@keyframes vt-slide {
+  from {
+    translate: var(--vt-offset-x, 0) var(--vt-offset-y, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

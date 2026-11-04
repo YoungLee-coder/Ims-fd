@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { AgencyMark } from "@/components/brand"
-import { PortalFooter } from "@/components/portal/portal-header"
+import { PageTransition } from "@/components/page-transition"
 import { Card, CardContent } from "@/components/ui/card"
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -13,7 +13,7 @@ export default async function PortalAuthLayout({ children }: { children: React.R
   return (
     <div className="flex min-h-svh flex-col bg-muted/30">
       <header className="border-b bg-background">
-        <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link
             href="/portal/login"
             className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -33,11 +33,11 @@ export default async function PortalAuthLayout({ children }: { children: React.R
 
       <main id="main-content" className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
         <Card className="w-full max-w-lg has-data-[layout=wide]:max-w-4xl md:has-data-[layout=wide]:[--card-spacing:--spacing(7)]">
-          <CardContent className="pt-2">{children}</CardContent>
+          <CardContent className="pt-2">
+            <PageTransition>{children}</PageTransition>
+          </CardContent>
         </Card>
       </main>
-
-      <PortalFooter />
     </div>
   )
 }

@@ -58,9 +58,11 @@ export function PortalHeader({
   onLogout?: () => Promise<void>
 }) {
   const t = useT()
+  const pathname = usePathname()
+  const creating = pathname.startsWith("/portal/applications/new")
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/portal/applications"
           className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -84,12 +86,14 @@ export function PortalHeader({
           {account ? (
             <>
               <NotificationBell realm="portal" />
-              <Button asChild size="sm" className="hidden sm:inline-flex">
-                <Link href="/portal/applications/new">
-                  <FilePlusIcon data-icon="inline-start" />
-                  {t("新建申请")}
-                </Link>
-              </Button>
+              {!creating && (
+                <Button asChild size="sm" className="hidden sm:inline-flex">
+                  <Link href="/portal/applications/new">
+                    <FilePlusIcon data-icon="inline-start" />
+                    {t("新建申请")}
+                  </Link>
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
@@ -123,18 +127,5 @@ export function PortalHeader({
         </div>
       </div>
     </header>
-  )
-}
-
-export function PortalFooter() {
-  const t = useT()
-  return (
-    <footer className="border-t bg-background">
-      <div className="mx-auto flex w-full max-w-5xl justify-end px-4 py-6 text-xs text-muted-foreground sm:px-6">
-        <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
-          {t("工作人员登录")}
-        </Link>
-      </div>
-    </footer>
   )
 }
