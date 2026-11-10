@@ -942,4 +942,6 @@ export const en: Record<string, string> = {
   "管理后台仅限工作人员使用，申请人账号无法在此登录。": "The staff console is for authorized staff only. Applicant accounts cannot sign in here.",
   "返回申请人门户": "Back to applicant portal",
   "网络连接失败，请检查网络后重试。": "Network connection failed. Please check your connection and try again.",
+  "申请已创建为草稿。": "The application was created as a draft.",
+  "申请人提交申请，等待受理。": "The applicant submitted the application; awaiting intake.",
 }
