@@ -881,4 +881,6 @@ export const es: Record<string, string> = {
   "管理后台仅限工作人员使用，申请人账号无法在此登录。": "La consola de gestión es solo para personal autorizado. Las cuentas de solicitante no pueden iniciar sesión aquí.",
   "返回申请人门户": "Volver al portal del solicitante",
   "网络连接失败，请检查网络后重试。": "Error de conexión de red. Compruebe su conexión e inténtelo de nuevo.",
+  "申请已创建为草稿。": "La solicitud se creó como borrador.",
+  "申请人提交申请，等待受理。": "El solicitante presentó la solicitud; pendiente de admisión.",
 }

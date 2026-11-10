@@ -881,4 +881,6 @@ export const de: Record<string, string> = {
   "管理后台仅限工作人员使用，申请人账号无法在此登录。": "Die Verwaltungskonsole ist nur für autorisierte Mitarbeitende. Antragstellerkonten können sich hier nicht anmelden.",
   "返回申请人门户": "Zurück zum Antragstellerportal",
   "网络连接失败，请检查网络后重试。": "Netzwerkverbindung fehlgeschlagen. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+  "申请已创建为草稿。": "Der Antrag wurde als Entwurf angelegt.",
+  "申请人提交申请，等待受理。": "Der Antragsteller hat den Antrag eingereicht; wartet auf Annahme.",
 }
